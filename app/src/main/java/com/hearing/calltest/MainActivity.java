@@ -1,47 +1,33 @@
 package com.hearing.calltest;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.telecom.TelecomManager;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.PermissionChecker;
 
-import com.hearing.calltest.service.PhoneListenService;
+import static android.telecom.TelecomManager.ACTION_CHANGE_DEFAULT_DIALER;
+import static android.telecom.TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    private String[] mPermissions = new String[]{
-            Manifest.permission.READ_CALL_LOG,
-            Manifest.permission.READ_CONTACTS,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.CALL_PHONE,
-            "",
-    };
-
     private static final int REQUEST_ID_POPUP = 0;
-    private static final int REQUEST_ID_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mPermissions[4] = Manifest.permission.ANSWER_PHONE_CALLS;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            offerReplacingDefaultDialer();
         }
-
         getPermissions();
     }
 
@@ -64,43 +50,21 @@ public class MainActivity extends AppCompatActivity {
                         }
                     })
                     .show();
-        } else {
-            if (checkPermission()) {
-                startService(new Intent(this, PhoneListenService.class));
-            } else {
-                ActivityCompat.requestPermissions(this, mPermissions, REQUEST_ID_PERMISSION);
-            }
         }
     }
 
-    @SuppressLint("WrongConstant")
-    private boolean checkPermission() {
-        boolean hasPermission = true;
-        for (String permission : mPermissions) {
-            if (!TextUtils.isEmpty(permission) && PermissionChecker.checkSelfPermission(this, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                hasPermission = false;
+    private void offerReplacingDefaultDialer() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!TextUtils.equals(((TelecomManager) getSystemService(Context.TELECOM_SERVICE)).getDefaultDialerPackage(), getPackageName())) {
+                startActivity(new Intent(ACTION_CHANGE_DEFAULT_DIALER).putExtra(EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME, getPackageName()));
             }
         }
-        return hasPermission;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == REQUEST_ID_POPUP) {
             getPermissions();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_ID_PERMISSION && grantResults.length > 0) {
-            for (int i = 0; i < grantResults.length; i++) {
-                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                    finish();
-                }
-            }
-            startService(new Intent(this, PhoneListenService.class));
         }
     }
 }

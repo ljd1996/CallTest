@@ -13,7 +13,6 @@ import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -29,7 +28,6 @@ import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.widget.FloatingView;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 
 
