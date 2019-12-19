@@ -18,9 +18,9 @@ public class MyPhoneCallListener extends PhoneStateListener {
      */
     @Override
     public void onCallStateChanged(int state, String incomingNumber) {
-        Log.d("LLL", "state = " + state);
+        Log.d("LLL", "state = " + state + ", incomingNumber = " + incomingNumber);
         if (mListener != null) {
-            mListener.onCallStateChanged(state);
+            mListener.onCallStateChanged(state, incomingNumber);
         }
         super.onCallStateChanged(state, incomingNumber);
     }
@@ -30,6 +30,6 @@ public class MyPhoneCallListener extends PhoneStateListener {
     }
 
     public interface OnCallStateChanged {
-        void onCallStateChanged(int state);
+        void onCallStateChanged(int state, String number);
     }
 }

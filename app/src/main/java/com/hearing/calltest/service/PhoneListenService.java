@@ -5,19 +5,15 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -29,7 +25,6 @@ import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.widget.FloatingView;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 
 
@@ -44,26 +39,9 @@ public class PhoneListenService extends Service {
     private FloatingView mFloatingView;
     private TelecomManager mTelManager;
 
-    private BroadcastReceiver serverReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (TextUtils.equals(action, "android.intent.action.PHONE_STATE")) {
-                String number = intent.getStringExtra("incoming_number");
-                Log.d(TAG, "number = " + number);
-                mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
-            }
-        }
-    };
-
     @Override
     public void onCreate() {
         super.onCreate();
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.intent.action.PHONE_STATE");
-        registerReceiver(serverReceiver, filter);
 
         mTelManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
 
@@ -105,7 +83,7 @@ public class PhoneListenService extends Service {
     }
 
     /**
-     * Android 8 不能挂电话
+     * 部分Android 8 不能挂电话
      */
     private void endCall() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -176,7 +154,7 @@ public class PhoneListenService extends Service {
                 MyPhoneCallListener listener = new MyPhoneCallListener();
                 listener.setListener(new MyPhoneCallListener.OnCallStateChanged() {
                     @Override
-                    public void onCallStateChanged(int state) {
+                    public void onCallStateChanged(int state, String number) {
                         switch (state) {
                             case TelephonyManager.CALL_STATE_IDLE:
                                 Log.d(TAG, "无状态...");
@@ -189,6 +167,7 @@ public class PhoneListenService extends Service {
                             case TelephonyManager.CALL_STATE_RINGING:
                                 Log.d(TAG, "电话响铃...");
                                 mFloatingView.show();
+                                mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
                                 break;
                         }
                     }
