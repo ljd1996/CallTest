@@ -1,6 +1,7 @@
 package com.hearing.calltest.service;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,14 +9,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 
@@ -71,20 +70,16 @@ public class PhoneListenService extends Service {
                 mTelManager.acceptRingingCall();
             }
         } else {
-            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            if (audioManager == null) {
-                return;
+            if (mTelManager != null) {
+                mTelManager.showInCallScreen(false);
             }
-            KeyEvent eventDown = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK);
-            KeyEvent eventUp = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK);
-            audioManager.dispatchMediaKeyEvent(eventDown);
-            audioManager.dispatchMediaKeyEvent(eventUp);
         }
     }
 
     /**
      * 部分Android 8 不能挂电话
      */
+    @SuppressLint("MissingPermission")
     private void endCall() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (mTelManager != null) {
@@ -97,6 +92,9 @@ public class PhoneListenService extends Service {
                 ITelephony telephony = ITelephony.Stub.asInterface(binder);
                 telephony.endCall();
             } catch (Exception e) {
+                if (mTelManager != null) {
+                    mTelManager.showInCallScreen(false);
+                }
                 e.printStackTrace();
             }
         }
