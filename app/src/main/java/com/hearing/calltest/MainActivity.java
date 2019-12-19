@@ -30,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
             "",
     };
 
+    private static final int REQUEST_ID_POPUP = 0;
+    private static final int REQUEST_ID_PERMISSION = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                            startActivityForResult(intent, 0);
+                            startActivityForResult(intent, REQUEST_ID_POPUP);
                         }
                     })
                     .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -65,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             if (checkPermission()) {
                 startService(new Intent(this, PhoneListenService.class));
             } else {
-                ActivityCompat.requestPermissions(this, mPermissions, 1);
+                ActivityCompat.requestPermissions(this, mPermissions, REQUEST_ID_PERMISSION);
             }
         }
     }
@@ -74,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean checkPermission() {
         boolean hasPermission = true;
         for (String permission : mPermissions) {
-            if (!TextUtils.isEmpty(permission) && PermissionChecker.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (!TextUtils.isEmpty(permission) && PermissionChecker.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
                 hasPermission = false;
             }
         }
@@ -83,14 +87,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == 0) {
+        if (requestCode == REQUEST_ID_POPUP) {
             getPermissions();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1 && grantResults.length > 0) {
+        if (requestCode == REQUEST_ID_PERMISSION && grantResults.length > 0) {
             for (int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                     finish();
