@@ -18,13 +18,13 @@ import com.hearing.calltest.R;
  */
 public class CircleTextView extends View {
 
-    private String customText;
-    private int customColor;
-    private int customRadius;
-    private int fontSize;
+    private String mCustomText;
+    private int mCustomColor;
+    private int mCustomRadius;
+    private int mFontSize;
 
-    private Paint circlePaint;
-    private TextPaint textPaint;
+    private Paint mCirclePaint;
+    private TextPaint mTextPaint;
 
     public CircleTextView(Context context) {
         this(context, null);
@@ -41,19 +41,19 @@ public class CircleTextView extends View {
 
     private void initCustomAttrs(Context context, AttributeSet attrs) {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.CircleTextView);
-        fontSize = ta.getInteger(R.styleable.CircleTextView_size, 16);
-        customText = ta.getString(R.styleable.CircleTextView_text);
-        customColor = ta.getColor(R.styleable.CircleTextView_color, Color.BLUE);
-        customRadius = ta.getInteger(R.styleable.CircleTextView_radius, 30);
+        mFontSize = ta.getInteger(R.styleable.CircleTextView_size, 16);
+        mCustomText = ta.getString(R.styleable.CircleTextView_text);
+        mCustomColor = ta.getColor(R.styleable.CircleTextView_color, Color.BLUE);
+        mCustomRadius = ta.getInteger(R.styleable.CircleTextView_radius, 30);
         ta.recycle();
 
-        circlePaint = new Paint();
-        circlePaint.setColor(customColor);
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeWidth(5);
-        textPaint = new TextPaint();
-        textPaint.setColor(customColor);
-        textPaint.setTextSize(fontSize);
+        mCirclePaint = new Paint();
+        mCirclePaint.setColor(mCustomColor);
+        mCirclePaint.setStyle(Paint.Style.STROKE);
+        mCirclePaint.setStrokeWidth(5);
+        mTextPaint = new TextPaint();
+        mTextPaint.setColor(mCustomColor);
+        mTextPaint.setTextSize(mFontSize);
     }
 
     @Override
@@ -82,38 +82,38 @@ public class CircleTextView extends View {
         final int paddingTop = getPaddingTop();
         final int paddingRight = getPaddingRight();
         final int paddingBottom = getPaddingBottom();
-        int width = 2 * customRadius - paddingLeft - paddingRight;
-        int height = 2 * customRadius - paddingTop - paddingBottom;
-        customRadius = Math.min(width, height) / 2;
-        canvas.drawCircle(customRadius, customRadius, customRadius, circlePaint);
+        int width = 2 * mCustomRadius - paddingLeft - paddingRight;
+        int height = 2 * mCustomRadius - paddingTop - paddingBottom;
+        mCustomRadius = Math.min(width, height) / 2;
+        canvas.drawCircle(mCustomRadius, mCustomRadius, mCustomRadius, mCirclePaint);
 
         // 将坐标原点移到控件中心
         canvas.translate(width / 2f, height / 2f);
-        float textWidth = textPaint.measureText(customText);
+        float textWidth = mTextPaint.measureText(mCustomText);
         // 文字baseline在y轴方向的位置
-        float baseLineY = Math.abs(textPaint.ascent() + textPaint.descent()) / 2;
-        canvas.drawText(customText, -textWidth / 2, baseLineY, textPaint);
+        float baseLineY = Math.abs(mTextPaint.ascent() + mTextPaint.descent()) / 2;
+        canvas.drawText(mCustomText, -textWidth / 2, baseLineY, mTextPaint);
     }
 
     public void setCustomText(String customText) {
-        this.customText = customText;
+        this.mCustomText = customText;
         invalidate();
     }
 
     public void setCustomColor(int customColor) {
-        this.customColor = customColor;
-        circlePaint.setColor(customColor);
+        this.mCustomColor = customColor;
+        mCirclePaint.setColor(customColor);
         invalidate();
     }
 
     public void setFontSize(int fontSize) {
-        this.fontSize = fontSize;
-        textPaint.setTextSize(fontSize);
+        this.mFontSize = fontSize;
+        mTextPaint.setTextSize(fontSize);
         invalidate();
     }
 
     public void setCustomRadius(int customRadius) {
-        this.customRadius = customRadius;
+        this.mCustomRadius = customRadius;
         invalidate();
     }
 }
