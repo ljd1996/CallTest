@@ -6,20 +6,24 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import com.android.internal.telephony.ITelephony;
 import com.hearing.calltest.MyPhoneCallListener;
+import com.hearing.calltest.PhoneHelper;
 import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.widget.FloatingView;
@@ -38,6 +42,28 @@ public class PhoneListenService extends Service {
     private FloatingView mFloatingView;
     private TelecomManager mTelManager;
 
+    private BroadcastReceiver mPhoneStateReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (TextUtils.equals(action, "android.intent.action.PHONE_STATE")) {
+                String state = intent.getStringExtra("state");
+                String number = intent.getStringExtra("incoming_number");
+
+                Log.d(TAG, "state = " + state + ", number = " + number);
+
+                if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
+                    mFloatingView.show();
+                    mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
+                } else if (TelephonyManager.EXTRA_STATE_IDLE.equalsIgnoreCase(state)) {
+                    PhoneHelper.getInstance().reset();
+                }
+            }
+        }
+    };
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -48,14 +74,20 @@ public class PhoneListenService extends Service {
         mFloatingView.setListener(new FloatingView.OnCallListener() {
             @Override
             public void onGet() {
+                PhoneHelper.getInstance().answer();
                 acceptCall();
             }
 
             @Override
             public void onEnd() {
+                PhoneHelper.getInstance().endCall();
                 endCall();
             }
         });
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.intent.action.PHONE_STATE");
+        registerReceiver(mPhoneStateReceiver, filter);
     }
 
     /**
@@ -106,8 +138,6 @@ public class PhoneListenService extends Service {
         if (notification != null) {
             startForeground(1, notification);
         }
-
-        registerPhoneStateListener();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -146,34 +176,30 @@ public class PhoneListenService extends Service {
     }
 
     private void registerPhoneStateListener() {
-        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (tm != null) {
-            try {
-                MyPhoneCallListener listener = new MyPhoneCallListener();
-                listener.setListener(new MyPhoneCallListener.OnCallStateChanged() {
-                    @Override
-                    public void onCallStateChanged(int state, String number) {
-                        switch (state) {
-                            case TelephonyManager.CALL_STATE_IDLE:
-                                Log.d(TAG, "无状态...");
-                                mFloatingView.hide();
-                                break;
-                            case TelephonyManager.CALL_STATE_OFFHOOK:
-                                Log.d(TAG, "正在通话...");
-                                mFloatingView.hide();
-                                break;
-                            case TelephonyManager.CALL_STATE_RINGING:
-                                Log.d(TAG, "电话响铃...");
-                                mFloatingView.show();
-                                mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
-                                break;
-                        }
+        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        if (telephonyManager != null) {
+            MyPhoneCallListener listener = new MyPhoneCallListener();
+            listener.setListener(new MyPhoneCallListener.OnCallStateChanged() {
+                @Override
+                public void onCallStateChanged(int state, String number) {
+                    switch (state) {
+                        case TelephonyManager.CALL_STATE_IDLE:
+                            Log.d(TAG, "无状态...");
+                            mFloatingView.hide();
+                            break;
+                        case TelephonyManager.CALL_STATE_OFFHOOK:
+                            Log.d(TAG, "正在通话...");
+                            mFloatingView.hide();
+                            break;
+                        case TelephonyManager.CALL_STATE_RINGING:
+                            Log.d(TAG, "电话响铃...");
+                            mFloatingView.show();
+                            mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
+                            break;
                     }
-                });
-                tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                }
+            });
+            telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
         }
     }
 }

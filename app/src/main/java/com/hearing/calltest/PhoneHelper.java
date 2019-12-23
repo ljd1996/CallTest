@@ -1,11 +1,7 @@
 package com.hearing.calltest;
 
-import android.content.Context;
-import android.telecom.TelecomManager;
 
-import com.hearing.calltest.widget.FloatingView;
-
-import java.lang.ref.WeakReference;
+import android.app.PendingIntent;
 
 /**
  * @author liujiadong
@@ -13,9 +9,8 @@ import java.lang.ref.WeakReference;
  */
 public class PhoneHelper {
 
-    private WeakReference<Context> mContext;
-    private FloatingView mFloatingView;
-    private TelecomManager mTelManager;
+    private PendingIntent mAnswerIntent;
+    private PendingIntent mEndIntent;
 
 
     private PhoneHelper() {
@@ -29,22 +24,38 @@ public class PhoneHelper {
         return SingleTon.sInstance;
     }
 
-    public void init(Context context) {
-        mContext = new WeakReference<>(context);
-
-        mTelManager = (TelecomManager) context.getSystemService(Context.TELECOM_SERVICE);
-
-        mFloatingView = new FloatingView(context);
-        mFloatingView.setListener(new FloatingView.OnCallListener() {
-            @Override
-            public void onGet() {
-            }
-
-            @Override
-            public void onEnd() {
-            }
-        });
+    public void setAnswerIntent(PendingIntent intent) {
+        this.mAnswerIntent = intent;
     }
 
+    public void setEndIntent(PendingIntent intent) {
+        this.mEndIntent = intent;
+    }
 
+    public void answer() {
+        if (mAnswerIntent != null) {
+            try {
+                mAnswerIntent.send();
+                mAnswerIntent = null;
+            } catch (PendingIntent.CanceledException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void endCall() {
+        if (mEndIntent != null) {
+            try {
+                mEndIntent.send();
+                mEndIntent = null;
+            } catch (PendingIntent.CanceledException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void reset() {
+        mAnswerIntent = null;
+        mEndIntent = null;
+    }
 }
