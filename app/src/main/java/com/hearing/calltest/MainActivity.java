@@ -2,6 +2,8 @@ package com.hearing.calltest;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,9 +17,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.PermissionChecker;
 
 import com.hearing.calltest.service.PhoneListenService;
+
+import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_ID_POPUP = 0;
     private static final int REQUEST_ID_PERMISSION = 1;
+    private static final int REQUEST_ID_NOTIFICATION = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,12 +70,33 @@ public class MainActivity extends AppCompatActivity {
                         }
                     })
                     .show();
+        } else if (!isNotificationEnabled(this)) {
+            openNotificationListenSettings();
         } else {
             if (checkPermission()) {
-                startService(new Intent(this, PhoneListenService.class));
+                afterPermissions();
             } else {
                 ActivityCompat.requestPermissions(this, mPermissions, REQUEST_ID_PERMISSION);
             }
+        }
+    }
+
+    // 判断是否打开了通知监听权限
+    public boolean isNotificationEnabled(Context context) {
+        Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(this);
+        if (packageNames.contains(context.getPackageName())) {
+            return true;
+        }
+        return false;
+    }
+
+    public void openNotificationListenSettings() {
+        try {
+            Intent intent;
+            intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            startActivityForResult(intent, REQUEST_ID_NOTIFICATION);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -87,9 +114,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_ID_POPUP) {
             getPermissions();
+        } else if (requestCode == REQUEST_ID_NOTIFICATION) {
+            getPermissions();
         }
+    }
+
+    private void afterPermissions() {
+        startService(new Intent(this, PhoneListenService.class));
     }
 
     @Override
@@ -100,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                 }
             }
-            startService(new Intent(this, PhoneListenService.class));
+            afterPermissions();
         }
     }
 }

@@ -33,9 +33,20 @@
 
         <service
             android:name=".service.PhoneListenService"
+            android:label="@string/app_title"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:process=":PhoneListenService">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".service.NotificationListenService"
+            android:label="@string/app_title"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
     </application>
