@@ -149,10 +149,6 @@ public class PhoneListenService extends Service {
 
     @SuppressLint("MissingPermission")
     private void endCall() {
-        if (mTelManager != null) {
-            mTelManager.showInCallScreen(false);
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             if (mTelManager != null) {
                 mTelManager.endCall();

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -20,6 +21,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.PermissionChecker;
 
 import com.hearing.calltest.service.PhoneListenService;
+import com.hearing.calltest.util.PermissionUtil;
 
 import java.util.Set;
 
@@ -83,10 +85,7 @@ public class MainActivity extends AppCompatActivity {
     // 判断是否打开了通知监听权限
     public boolean isNotificationEnabled(Context context) {
         Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(this);
-        if (packageNames.contains(context.getPackageName())) {
-            return true;
-        }
-        return false;
+        return packageNames.contains(context.getPackageName());
     }
 
     public void openNotificationListenSettings() {
@@ -123,6 +122,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void afterPermissions() {
         startService(new Intent(this, PhoneListenService.class));
+        if (!PermissionUtil.getInstance().isOpen(this)) {
+            PermissionUtil.getInstance().setOpen(this);
+            new AlertDialog.Builder(this)
+                    .setMessage("请开启锁屏显示权限")
+                    .setPositiveButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("确认", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent();
+                            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            intent.setData(Uri.fromParts("package", getPackageName(), null));
+                            startActivity(intent);
+                        }
+                    })
+                    .create()
+                    .show();
+        }
     }
 
     @Override
