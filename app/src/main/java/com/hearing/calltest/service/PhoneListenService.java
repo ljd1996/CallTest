@@ -1,34 +1,37 @@
 package com.hearing.calltest.service;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
+import android.media.session.MediaController;
+import android.media.session.MediaSessionManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.telecom.TelecomManager;
-import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 
 import com.android.internal.telephony.ITelephony;
-import com.hearing.calltest.MyPhoneCallListener;
-import com.hearing.calltest.PhoneHelper;
 import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.widget.FloatingView;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 
 /**
@@ -56,8 +59,6 @@ public class PhoneListenService extends Service {
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
                     mFloatingView.show();
                     mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
-                } else if (TelephonyManager.EXTRA_STATE_IDLE.equalsIgnoreCase(state)) {
-                    PhoneHelper.getInstance().reset();
                 }
             }
         }
@@ -74,13 +75,11 @@ public class PhoneListenService extends Service {
         mFloatingView.setListener(new FloatingView.OnCallListener() {
             @Override
             public void onGet() {
-                PhoneHelper.getInstance().answer();
                 acceptCall();
             }
 
             @Override
             public void onEnd() {
-                PhoneHelper.getInstance().endCall();
                 endCall();
             }
         });
@@ -90,48 +89,6 @@ public class PhoneListenService extends Service {
         registerReceiver(mPhoneStateReceiver, filter);
     }
 
-    /**
-     * Android 7 不能接电话
-     */
-    private void acceptCall() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (mTelManager != null) {
-                if (checkSelfPermission(Manifest.permission.ANSWER_PHONE_CALLS) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-                mTelManager.acceptRingingCall();
-            }
-        } else {
-            if (mTelManager != null) {
-                mTelManager.showInCallScreen(false);
-            }
-        }
-    }
-
-    /**
-     * 部分Android 8 不能挂电话
-     */
-    @SuppressLint("MissingPermission")
-    private void endCall() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (mTelManager != null) {
-                mTelManager.endCall();
-            }
-        } else {
-            try {
-                Method method = Class.forName("android.os.ServiceManager").getMethod("getService", String.class);
-                IBinder binder = (IBinder) method.invoke(null, new Object[]{Context.TELEPHONY_SERVICE});
-                ITelephony telephony = ITelephony.Stub.asInterface(binder);
-                telephony.endCall();
-            } catch (Exception e) {
-                if (mTelManager != null) {
-                    mTelManager.showInCallScreen(false);
-                }
-                e.printStackTrace();
-            }
-        }
-    }
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Notification notification = buildNotification();
@@ -139,6 +96,12 @@ public class PhoneListenService extends Service {
             startForeground(1, notification);
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     private Notification buildNotification() {
@@ -169,37 +132,78 @@ public class PhoneListenService extends Service {
         return notification;
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    @SuppressLint("MissingPermission")
+    private void acceptCall() {
+        if (mTelManager != null) {
+            mTelManager.showInCallScreen(false);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (mTelManager != null) {
+                mTelManager.acceptRingingCall();
+            }
+        } else {
+            sendHeadsetHook(true);
+        }
     }
 
-    private void registerPhoneStateListener() {
-        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (telephonyManager != null) {
-            MyPhoneCallListener listener = new MyPhoneCallListener();
-            listener.setListener(new MyPhoneCallListener.OnCallStateChanged() {
-                @Override
-                public void onCallStateChanged(int state, String number) {
-                    switch (state) {
-                        case TelephonyManager.CALL_STATE_IDLE:
-                            Log.d(TAG, "无状态...");
-                            mFloatingView.hide();
-                            break;
-                        case TelephonyManager.CALL_STATE_OFFHOOK:
-                            Log.d(TAG, "正在通话...");
-                            mFloatingView.hide();
-                            break;
-                        case TelephonyManager.CALL_STATE_RINGING:
-                            Log.d(TAG, "电话响铃...");
-                            mFloatingView.show();
-                            mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
-                            break;
+    @SuppressLint("MissingPermission")
+    private void endCall() {
+        if (mTelManager != null) {
+            mTelManager.showInCallScreen(false);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (mTelManager != null) {
+                mTelManager.endCall();
+            }
+        } else {
+            sendHeadsetHook(false);
+            try {
+                Method method = Class.forName("android.os.ServiceManager").getMethod("getService", String.class);
+                IBinder binder = (IBinder) method.invoke(null, new Object[]{Context.TELEPHONY_SERVICE});
+                ITelephony telephony = ITelephony.Stub.asInterface(binder);
+                telephony.endCall();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 通过模拟耳机接听/挂断电话
+     *
+     * @param isAnswer: true, 接听; false: 挂断
+     */
+    private void sendHeadsetHook(boolean isAnswer) {
+        MediaSessionManager sessionManager = (MediaSessionManager) getSystemService(Context.MEDIA_SESSION_SERVICE);
+
+        if (sessionManager == null) {
+            return;
+        }
+
+        try {
+            List<MediaController> controllers = sessionManager.getActiveSessions(new ComponentName(this, EmptyNotificationListenService.class));
+
+            for (MediaController m : controllers) {
+                if ("com.android.server.telecom".equals(m.getPackageName())) {
+
+                    if (isAnswer) {
+                        m.dispatchMediaButtonEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK));
+                    } else {
+                        long now = SystemClock.uptimeMillis();
+                        m.dispatchMediaButtonEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK,
+                                1, 0, KeyCharacterMap.VIRTUAL_KEYBOARD,
+                                0, KeyEvent.FLAG_LONG_PRESS, InputDevice.SOURCE_KEYBOARD));
                     }
+
+                    m.dispatchMediaButtonEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK));
+                    Log.d(TAG, "headset sent to tel");
+                    break;
                 }
-            });
-            telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+            }
+        } catch (SecurityException e) {
+            Log.d(TAG, "Permission error, Access to notification not granted to the app.");
         }
     }
 }
