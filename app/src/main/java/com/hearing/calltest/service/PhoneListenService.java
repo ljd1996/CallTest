@@ -28,6 +28,7 @@ import androidx.annotation.Nullable;
 import com.android.internal.telephony.ITelephony;
 import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
+import com.hearing.calltest.util.Util;
 import com.hearing.calltest.widget.FloatingView;
 
 import java.lang.reflect.Method;
@@ -54,7 +55,7 @@ public class PhoneListenService extends Service {
                 String state = intent.getStringExtra("state");
                 String number = intent.getStringExtra("incoming_number");
 
-                Log.d(TAG, "state = " + state + ", number = " + number);
+                Log.d(TAG, this + " state = " + state + ", number = " + number);
 
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
                     mFloatingView.show();
@@ -91,6 +92,7 @@ public class PhoneListenService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, this + " onStartCommand");
         Notification notification = buildNotification();
         if (notification != null) {
             startForeground(1, notification);
@@ -101,6 +103,7 @@ public class PhoneListenService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(TAG, this + " onBind");
         return null;
     }
 
@@ -166,6 +169,13 @@ public class PhoneListenService extends Service {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, this + " onDestroy");
+        Util.startMainActivity(this);
+        super.onDestroy();
+    }
+
     /**
      * 通过模拟耳机接听/挂断电话
      *
@@ -194,12 +204,12 @@ public class PhoneListenService extends Service {
                     }
 
                     m.dispatchMediaButtonEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_HEADSETHOOK));
-                    Log.d(TAG, "headset sent to tel");
+                    Log.d(TAG, this + " headset sent to tel");
                     break;
                 }
             }
         } catch (SecurityException e) {
-            Log.d(TAG, "Permission error, Access to notification not granted to the app.");
+            Log.d(TAG, this + " Permission error, Access to notification not granted to the app.");
         }
     }
 }

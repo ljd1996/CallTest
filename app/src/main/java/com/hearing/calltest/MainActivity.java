@@ -2,6 +2,7 @@ package com.hearing.calltest;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -122,8 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void afterPermissions() {
         startService(new Intent(this, PhoneListenService.class));
-        if (!PermissionUtil.getInstance().isOpen(this)) {
-            PermissionUtil.getInstance().setOpen(this);
+        if (!PermissionUtil.getInstance().isLockOpen(this)) {
             new AlertDialog.Builder(this)
                     .setMessage("请开启锁屏显示权限")
                     .setPositiveButton("取消", new DialogInterface.OnClickListener() {
@@ -135,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton("确认", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            PermissionUtil.getInstance().setLockOpen(MainActivity.this);
                             Intent intent = new Intent();
                             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                             intent.setData(Uri.fromParts("package", getPackageName(), null));
@@ -144,6 +145,79 @@ public class MainActivity extends AppCompatActivity {
                     .create()
                     .show();
         }
+        if (!PermissionUtil.getInstance().isLaunchOpen(this)) {
+            new AlertDialog.Builder(this)
+                    .setMessage("请开启自启动权限")
+                    .setPositiveButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("确认", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            PermissionUtil.getInstance().setLaunchOpen(MainActivity.this);
+                            try {
+                                startActivity(getAutostartSettingIntent(MainActivity.this));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    })
+                    .create()
+                    .show();
+        }
+    }
+
+    private Intent getAutostartSettingIntent(Context context) throws Exception {
+        ComponentName componentName = null;
+        String brand = Build.MANUFACTURER;
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        switch (brand.toLowerCase()) {
+            case "samsung"://三星
+                componentName = new ComponentName("com.samsung.android.sm",
+                        "com.samsung.android.sm.app.dashboard.SmartManagerDashBoardActivity");
+                break;
+            case "huawei"://华为
+                componentName = ComponentName.unflattenFromString("com.huawei.systemmanager/.startupmgr.ui.StartupNormalAppListActivity");
+                break;
+            case "xiaomi"://小米
+                componentName = new ComponentName("com.miui.securitycenter",
+                        "com.miui.permcenter.autostart.AutoStartManagementActivity");
+                break;
+            case "vivo"://VIVO
+                componentName = new ComponentName("com.iqoo.secure",
+                        "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity");
+                break;
+            case "oppo"://OPPO
+//            componentName = new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity");
+                componentName = new ComponentName("com.coloros.oppoguardelf",
+                        "com.coloros.powermanager.fuelgaue.PowerUsageModelActivity");
+                break;
+            case "yulong":
+            case "360"://360
+                componentName = new ComponentName("com.yulong.android.coolsafe",
+                        "com.yulong.android.coolsafe.ui.activity.autorun.AutoRunListActivity");
+                break;
+            case "meizu"://魅族
+                componentName = new ComponentName("com.meizu.safe",
+                        "com.meizu.safe.permission.SmartBGActivity");
+                break;
+            case "oneplus"://一加
+                componentName = new ComponentName("com.oneplus.security",
+                        "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity");
+                break;
+            case "letv"://乐视
+                intent.setAction("com.letv.android.permissionautoboot");
+            default://其他
+                intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                intent.setData(Uri.fromParts("package", context.getPackageName(), null));
+                break;
+        }
+        intent.setComponent(componentName);
+        return intent;
     }
 
     @Override

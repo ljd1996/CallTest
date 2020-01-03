@@ -22,7 +22,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -33,7 +34,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.PhoneListenService">
+        <service android:name=".service.PhoneListenService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":phone">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
@@ -41,6 +45,9 @@
 
         <service
             android:name=".service.EmptyNotificationListenService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":phone"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
