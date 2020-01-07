@@ -4,15 +4,50 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:text="@string/app_title"
-        android:textSize="32sp"
+        android:padding="10dp"
+        android:text="@string/video_select"
+        android:textColor="@color/colorAccent"
         android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/colorAccent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/video_rv"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@color/colorPrimaryDark" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="@string/ring_select"
+        android:textColor="@color/colorAccent"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/colorAccent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/ring_rv"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
 </LinearLayout>

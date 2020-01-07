@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">CallTest</string>
     <string name="app_title">来电秀</string>
+    <string name="video_select">选择来电秀视频</string>
+    <string name="ring_select">选择来电秀铃声</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
 </resources>

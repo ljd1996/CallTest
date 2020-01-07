@@ -11,6 +11,7 @@ public class PermissionUtil {
     private static final String PERMISSION_SP = "permission_sp";
     private static final String LOCK_PERMISSION_OPEN = "lock_permission_open";
     private static final String LAUNCH_PERMISSION_OPEN = "launch_permission_open";
+    private static final String SETTING_PERMISSION_OPEN = "setting_permission_open";
 
     private PermissionUtil() {
     }
@@ -56,6 +57,22 @@ public class PermissionUtil {
         }
         SharedPreferences.Editor editor = getSP(context).edit();
         editor.putBoolean(LAUNCH_PERMISSION_OPEN, true);
+        editor.apply();
+    }
+
+    public boolean isSettingOpen(Context context) {
+        if (context == null) {
+            return false;
+        }
+        return getSP(context).getBoolean(SETTING_PERMISSION_OPEN, false);
+    }
+
+    public void setSettingOpen(Context context) {
+        if (context == null) {
+            return;
+        }
+        SharedPreferences.Editor editor = getSP(context).edit();
+        editor.putBoolean(SETTING_PERMISSION_OPEN, true);
         editor.apply();
     }
 }

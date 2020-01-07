@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/translation">
+
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/player_view"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:layout_gravity="center" />
+
+    <LinearLayout
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:background="@drawable/bg"
+            android:text="@string/cancel"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:background="@drawable/bg"
+            android:text="@string/confirm"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+</LinearLayout>

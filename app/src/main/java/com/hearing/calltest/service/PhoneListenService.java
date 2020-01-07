@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -26,6 +27,7 @@ import android.view.KeyEvent;
 import androidx.annotation.Nullable;
 
 import com.android.internal.telephony.ITelephony;
+import com.hearing.calltest.MainActivity;
 import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.util.Util;
@@ -108,6 +110,10 @@ public class PhoneListenService extends Service {
     }
 
     private Notification buildNotification() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
         Notification notification;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -124,12 +130,14 @@ public class PhoneListenService extends Service {
                     .setContentTitle(getString(R.string.app_name))
                     .setContentText("来电秀")
                     .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentIntent(contentIntent)
                     .build();
         } else {
             notification = new Notification.Builder(this)
                     .setContentTitle(getString(R.string.app_name))
                     .setContentText("来电秀")
                     .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentIntent(contentIntent)
                     .build();
         }
         return notification;
