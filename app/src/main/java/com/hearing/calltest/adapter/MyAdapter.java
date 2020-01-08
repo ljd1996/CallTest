@@ -1,5 +1,6 @@
 package com.hearing.calltest.adapter;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +21,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     private List<String> mData;
     private OnItemClickListener mOnItemClickListener;
-
+    private int mSelectIndex = -1;
 
     public MyAdapter() {
 
@@ -28,6 +29,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public MyAdapter(List<String> data) {
         this.mData = data;
+    }
+
+    public void setSelectIndex(int selectIndex) {
+        this.mSelectIndex = selectIndex;
+        notifyDataSetChanged();
     }
 
     public void setData(List<String> data) {
@@ -53,9 +59,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
         holder.mTextView.setText(mData.get(position));
+        if (position == mSelectIndex) {
+            holder.mTextView.setTextColor(Color.RED);
+        } else {
+            holder.mTextView.setTextColor(Color.BLACK);
+        }
         holder.mTextView.setOnClickListener(v -> {
             if (mOnItemClickListener != null) {
-                mOnItemClickListener.onClick(position, holder);
+                mOnItemClickListener.onClick(position);
             }
         });
     }
@@ -75,6 +86,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     }
 
     public interface OnItemClickListener {
-        void onClick(int index, ViewHolder holder);
+        void onClick(int index);
     }
 }

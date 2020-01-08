@@ -1,25 +1,25 @@
 package com.hearing.calltest.widget;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.hearing.calltest.FloatingManager;
 import com.hearing.calltest.R;
+import com.hearing.calltest.util.VideoRingHelper;
 
 /**
  * @author liujiadong
  * @since 2019/12/17
  */
 public class FloatingView extends FrameLayout {
+    private Context mContext;
     private View mView;
     private VideoView mVideoView;
     private FloatingManager mWindowManager;
@@ -28,31 +28,25 @@ public class FloatingView extends FrameLayout {
 
     public FloatingView(Context context) {
         super(context);
+        mContext = context;
+
         mView = LayoutInflater.from(context).inflate(R.layout.floating_view, null);
 
-        mView.findViewById(R.id.get_call).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hide();
-                if (mListener != null) {
-                    mListener.onGet();
-                }
+        mView.findViewById(R.id.get_call).setOnClickListener(v -> {
+            hide();
+            if (mListener != null) {
+                mListener.onGet();
             }
         });
-        mView.findViewById(R.id.end_call).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hide();
-                if (mListener != null) {
-                    mListener.onEnd();
-                }
+        mView.findViewById(R.id.end_call).setOnClickListener(v -> {
+            hide();
+            if (mListener != null) {
+                mListener.onEnd();
             }
         });
 
         mWindowManager = FloatingManager.getInstance(context);
         mVideoView = mView.findViewById(R.id.video_view);
-//        mVideoView.setMediaController(new MediaController(context));
-        mVideoView.setVideoURI(Uri.parse("https://d26bc9zqop4h1j.cloudfront.net/vclip/Meteorite.mp4"));
     }
 
     public void setPerson(String name, String number) {
@@ -69,6 +63,8 @@ public class FloatingView extends FrameLayout {
     }
 
     public void show() {
+        mVideoView.setVideoPath(VideoRingHelper.getInstance().getSelectVideo(mContext));
+
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;

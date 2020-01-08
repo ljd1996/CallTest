@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.TextView;
@@ -29,6 +30,7 @@ import com.hearing.calltest.adapter.MyAdapter;
 import com.hearing.calltest.service.PhoneListenService;
 import com.hearing.calltest.util.PermissionUtil;
 import com.hearing.calltest.util.Util;
+import com.hearing.calltest.util.VideoRingHelper;
 import com.hearing.calltest.widget.PlayerDialog;
 
 import java.util.List;
@@ -74,8 +76,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
-        mVideoPath = getFilesDir().getAbsolutePath() + "/video";
-        mRingPath = getFilesDir().getAbsolutePath() + "/ring";
+        try {
+            mVideoPath = getExternalFilesDir(null).getAbsolutePath() + "/video";
+            mRingPath = getExternalFilesDir(null).getAbsolutePath() + "/ring";
+        } catch (Exception e) {
+            mVideoPath = getFilesDir().getAbsolutePath() + "/video";
+            mRingPath = getFilesDir().getAbsolutePath() + "/ring";
+        }
 
         mVideoRecycleView = findViewById(R.id.video_rv);
         mRingRecycleView = findViewById(R.id.ring_rv);
@@ -88,21 +95,31 @@ public class MainActivity extends AppCompatActivity {
         mRingAdapter = new MyAdapter();
         mRingRecycleView.setAdapter(mRingAdapter);
 
-        mVideoAdapter.setOnItemClickListener((index, holder) -> {
+        mVideoAdapter.setOnItemClickListener((index) -> {
+            if (index == mVideoAdapter.getItemCount() - 1) {
+                mVideoAdapter.setSelectIndex(index);
+                VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, "");
+                return;
+            }
             String path = mVideoPath + "/" + mVideoAdapter.getData(index);
             PlayerDialog dialog = new PlayerDialog(MainActivity.this, path);
             dialog.setListener(() -> {
-                holder.mTextView.setTextColor(Color.RED);
-
+                mVideoAdapter.setSelectIndex(index);
+                VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, path);
             });
             dialog.show();
         });
 
-        mRingAdapter.setOnItemClickListener((index, holder) -> {
+        mRingAdapter.setOnItemClickListener((index) -> {
+            if (index == mRingAdapter.getItemCount() - 1) {
+                mRingAdapter.setSelectIndex(index);
+                Util.setRing(MainActivity.this, "/");
+                return;
+            }
             String path = mRingPath + "/" + mRingAdapter.getData(index);
             PlayerDialog dialog = new PlayerDialog(MainActivity.this, path);
             dialog.setListener(() -> {
-                holder.mTextView.setTextColor(Color.RED);
+                mRingAdapter.setSelectIndex(index);
                 Util.setRing(MainActivity.this, path);
             });
             dialog.show();
@@ -110,11 +127,13 @@ public class MainActivity extends AppCompatActivity {
 
         copyData("video", mVideoPath, list -> {
             if (list != null) {
+                list.add("不设置视频");
                 mVideoAdapter.setData(list);
             }
         });
         copyData("ring", mRingPath, list -> {
             if (list != null) {
+                list.add("不设置铃声");
                 mRingAdapter.setData(list);
             }
         });
