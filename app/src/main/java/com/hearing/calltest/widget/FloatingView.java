@@ -1,9 +1,11 @@
 package com.hearing.calltest.widget;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -22,6 +24,8 @@ public class FloatingView extends FrameLayout {
     private Context mContext;
     private View mView;
     private VideoView mVideoView;
+    private LockSlidingView mAcceptView;
+    private LockSlidingView mEndCallView;
     private FloatingManager mWindowManager;
     private OnCallListener mListener;
     private boolean mShown = false;
@@ -32,13 +36,29 @@ public class FloatingView extends FrameLayout {
 
         mView = LayoutInflater.from(context).inflate(R.layout.floating_view, null);
 
-        mView.findViewById(R.id.get_call).setOnClickListener(v -> {
+        mAcceptView = mView.findViewById(R.id.get_call);
+        mEndCallView = mView.findViewById(R.id.end_call);
+
+        mAcceptView.setListener(() -> {
             hide();
             if (mListener != null) {
                 mListener.onGet();
             }
         });
-        mView.findViewById(R.id.end_call).setOnClickListener(v -> {
+        mAcceptView.setOnSingleTapListener(e -> {
+            hide();
+            if (mListener != null) {
+                mListener.onGet();
+            }
+        });
+
+        mEndCallView.setListener(() -> {
+            hide();
+            if (mListener != null) {
+                mListener.onEnd();
+            }
+        });
+        mEndCallView.setOnSingleTapListener(e -> {
             hide();
             if (mListener != null) {
                 mListener.onEnd();
@@ -64,6 +84,8 @@ public class FloatingView extends FrameLayout {
 
     public void show() {
         mVideoView.setVideoPath(VideoRingHelper.getInstance().getSelectVideo(mContext));
+        mAcceptView.setVisible();
+        mEndCallView.setVisible();
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

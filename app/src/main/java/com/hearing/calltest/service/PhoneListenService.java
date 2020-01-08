@@ -62,6 +62,8 @@ public class PhoneListenService extends Service {
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
                     mFloatingView.show();
                     mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
+                } else {
+                    mFloatingView.hide();
                 }
             }
         }

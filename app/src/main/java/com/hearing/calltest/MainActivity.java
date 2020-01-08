@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.widget.TextView;
@@ -60,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
     private String mVideoPath;
     private String mRingPath;
+
+    private Handler mHandle = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,13 +132,13 @@ public class MainActivity extends AppCompatActivity {
         copyData("video", mVideoPath, list -> {
             if (list != null) {
                 list.add("不设置视频");
-                mVideoAdapter.setData(list);
+                mHandle.post(() -> mVideoAdapter.setData(list));
             }
         });
         copyData("ring", mRingPath, list -> {
             if (list != null) {
                 list.add("不设置铃声");
-                mRingAdapter.setData(list);
+                mHandle.post(() -> mRingAdapter.setData(list));
             }
         });
     }

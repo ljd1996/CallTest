@@ -8,8 +8,12 @@
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:padding="10dp" />
+        android:padding="10dp"
+        android:shadowColor="#FF000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:textColor="@color/black" />
 
     <View
         android:layout_width="match_parent"

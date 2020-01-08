@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.hearing.calltest.R;
+import com.hearing.calltest.util.DimensionUtil;
 
 /**
  * @author liujiadong
@@ -41,16 +42,16 @@ public class CircleTextView extends View {
 
     private void initCustomAttrs(Context context, AttributeSet attrs) {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.CircleTextView);
-        mFontSize = ta.getInteger(R.styleable.CircleTextView_size, 16);
+        mFontSize = DimensionUtil.sp2px(context, ta.getInteger(R.styleable.CircleTextView_size, 16));
         mCustomText = ta.getString(R.styleable.CircleTextView_text);
         mCustomColor = ta.getColor(R.styleable.CircleTextView_color, Color.BLUE);
-        mCustomRadius = ta.getInteger(R.styleable.CircleTextView_radius, 30);
+        mCustomRadius = DimensionUtil.dip2px(context, ta.getInteger(R.styleable.CircleTextView_radius, 30));
         ta.recycle();
 
         mCirclePaint = new Paint();
         mCirclePaint.setColor(mCustomColor);
         mCirclePaint.setStyle(Paint.Style.STROKE);
-        mCirclePaint.setStrokeWidth(5);
+        mCirclePaint.setStrokeWidth(2);
         mTextPaint = new TextPaint();
         mTextPaint.setColor(mCustomColor);
         mTextPaint.setTextSize(mFontSize);
@@ -62,7 +63,7 @@ public class CircleTextView extends View {
         int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
         // 在wrap_content的情况下默认长度为200
-        int minSize = 400;
+        int minSize = 100;
         // 当布局参数设置为wrap_content时，设置默认值
         if (getLayoutParams().width == ViewGroup.LayoutParams.WRAP_CONTENT && getLayoutParams().height == ViewGroup.LayoutParams.WRAP_CONTENT) {
             setMeasuredDimension(minSize, minSize);
@@ -85,7 +86,7 @@ public class CircleTextView extends View {
         int width = 2 * mCustomRadius - paddingLeft - paddingRight;
         int height = 2 * mCustomRadius - paddingTop - paddingBottom;
         mCustomRadius = Math.min(width, height) / 2;
-        canvas.drawCircle(mCustomRadius, mCustomRadius, mCustomRadius, mCirclePaint);
+        canvas.drawCircle(width / 2, height / 2, mCustomRadius, mCirclePaint);
 
         // 将坐标原点移到控件中心
         canvas.translate(width / 2f, height / 2f);
@@ -93,27 +94,5 @@ public class CircleTextView extends View {
         // 文字baseline在y轴方向的位置
         float baseLineY = Math.abs(mTextPaint.ascent() + mTextPaint.descent()) / 2;
         canvas.drawText(mCustomText, -textWidth / 2, baseLineY, mTextPaint);
-    }
-
-    public void setCustomText(String customText) {
-        this.mCustomText = customText;
-        invalidate();
-    }
-
-    public void setCustomColor(int customColor) {
-        this.mCustomColor = customColor;
-        mCirclePaint.setColor(customColor);
-        invalidate();
-    }
-
-    public void setFontSize(int fontSize) {
-        this.mFontSize = fontSize;
-        mTextPaint.setTextSize(fontSize);
-        invalidate();
-    }
-
-    public void setCustomRadius(int customRadius) {
-        this.mCustomRadius = customRadius;
-        invalidate();
     }
 }

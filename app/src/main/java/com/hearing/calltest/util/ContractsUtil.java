@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 
+import com.hearing.calltest.R;
+
 /**
  * @author liujiadong
  * @since 2019/12/17
@@ -35,7 +37,7 @@ public class ContractsUtil {
                 e.printStackTrace();
             }
         }
-        String ret = "未知来电";
+        String ret = context.getResources().getString(R.string.unknown_contract);
         if (cursor != null && cursor.getCount() > 0 && cursor.moveToFirst()) {
             ret = cursor.getString(1);
             cursor.close();
