@@ -113,8 +113,10 @@ public class Util {
         Log.d(TAG, "delete = " + context.getContentResolver().delete(uri, delete, null));
 
         Uri newUri = context.getContentResolver().insert(uri, values);
+
         Log.d(TAG, "uri = " + uri);
         Log.d(TAG, "new uri = " + newUri);
+
         RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, newUri);
         Toast.makeText(context, "设置来电铃声成功！", Toast.LENGTH_SHORT).show();
     }

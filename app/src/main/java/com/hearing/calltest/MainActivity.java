@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
             PlayerDialog dialog = new PlayerDialog(MainActivity.this, path);
             dialog.setListener(() -> {
                 mVideoAdapter.setSelectIndex(index);
+                Util.setRing(MainActivity.this, path);
                 VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, path);
             });
             dialog.show();
