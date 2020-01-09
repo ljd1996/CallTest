@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.hearing.calltest.R;
 
@@ -14,6 +15,29 @@ import com.hearing.calltest.R;
  * @since 2019/12/17
  */
 public class ContractsUtil {
+
+    private static final String TAG = "LLL";
+
+    public static String getContacts(Context context, Uri contactUri) {
+        String phoneNumber = "";
+        if (context == null || contactUri == null) {
+            return "";
+        }
+        Cursor cursor = context.getContentResolver().query(contactUri, null, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+            Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+                            + "=" + id, null, null);
+            if (phones != null && phones.moveToNext()) {
+                phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                phones.close();
+            }
+            cursor.close();
+        }
+        Log.d(TAG, "number = " + phoneNumber);
+        return phoneNumber;
+    }
 
     public static String getContactName(Context context, String number) {
         if (TextUtils.isEmpty(number)) {

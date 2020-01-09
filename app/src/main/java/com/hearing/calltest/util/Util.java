@@ -3,8 +3,10 @@ package com.hearing.calltest.util;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -121,4 +123,39 @@ public class Util {
         Toast.makeText(context, "设置来电铃声成功！", Toast.LENGTH_SHORT).show();
     }
 
+    public static void setRing(Context context, String path, String number) {
+        final Uri lookupUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, number);
+        final String[] projection = new String[]{
+                ContactsContract.Contacts._ID, ContactsContract.Contacts.LOOKUP_KEY
+        };
+        final Cursor data = context.getContentResolver().query(lookupUri, projection, null, null, null);
+        try {
+            if (data != null && data.moveToFirst()) {
+                final long contactId = data.getLong(0);
+                final String lookupKey = data.getString(1);
+                final Uri contactUri = ContactsContract.Contacts.getLookupUri(contactId, lookupKey);
+                if (contactUri == null) {
+                    Log.d(TAG, "Invalid arguments");
+                    return;
+                }
+
+                final File file = new File(path);
+                final String value = Uri.fromFile(file).toString();
+
+                Log.d(TAG, "uri = " + contactUri);
+                Log.d(TAG, "value = " + value);
+
+                final ContentValues values = new ContentValues(1);
+                values.put(ContactsContract.Contacts.CUSTOM_RINGTONE, value);
+                context.getContentResolver().update(contactUri, values, null, null);
+                Toast.makeText(context, "设置联系人铃声成功！", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (data != null) {
+                data.close();
+            }
+        }
+    }
 }

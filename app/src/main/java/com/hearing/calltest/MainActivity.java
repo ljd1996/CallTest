@@ -4,19 +4,18 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.widget.TextView;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.hearing.calltest.adapter.MyAdapter;
 import com.hearing.calltest.service.PhoneListenService;
+import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.util.PermissionUtil;
 import com.hearing.calltest.util.Util;
 import com.hearing.calltest.util.VideoRingHelper;
@@ -41,9 +41,12 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "LLL";
+
     private String[] mPermissions = new String[]{
             Manifest.permission.READ_CALL_LOG,
             Manifest.permission.READ_CONTACTS,
+            Manifest.permission.WRITE_CONTACTS,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.CALL_PHONE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ID_POPUP = 0;
     private static final int REQUEST_ID_PERMISSION = 1;
     private static final int REQUEST_ID_NOTIFICATION = 2;
+    private static final int REQUEST_ID_PICK_CONTACT = 3;
 
     private RecyclerView mVideoRecycleView;
     private RecyclerView mRingRecycleView;
@@ -63,6 +67,9 @@ public class MainActivity extends AppCompatActivity {
     private String mVideoPath;
     private String mRingPath;
 
+    private int mSelectRingIndex = 0;
+    private String mSelectRingPath = "";
+
     private Handler mHandle = new Handler(Looper.getMainLooper());
 
     @Override
@@ -71,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mPermissions[6] = Manifest.permission.ANSWER_PHONE_CALLS;
+            mPermissions[7] = Manifest.permission.ANSWER_PHONE_CALLS;
         }
 
         getPermissions();
@@ -123,10 +130,21 @@ public class MainActivity extends AppCompatActivity {
             }
             String path = mRingPath + "/" + mRingAdapter.getData(index);
             PlayerDialog dialog = new PlayerDialog(MainActivity.this, path);
-            dialog.setListener(() -> {
-                mRingAdapter.setSelectIndex(index);
-                Util.setRing(MainActivity.this, path);
-            });
+            dialog.setListener(() -> new AlertDialog.Builder(this)
+                    .setMessage("是否为指定联系人设置铃声？")
+                    .setPositiveButton("全部联系人", (dialog1, which) -> {
+                        dialog1.dismiss();
+                        mRingAdapter.setSelectIndex(index);
+                        Util.setRing(MainActivity.this, path);
+                    })
+                    .setNegativeButton("选择联系人", (dialog12, which) -> {
+                        dialog12.dismiss();
+                        mSelectRingIndex = index;
+                        mSelectRingPath = path;
+                        selectConnection();
+                    })
+                    .create()
+                    .show());
             dialog.show();
         });
 
@@ -142,6 +160,11 @@ public class MainActivity extends AppCompatActivity {
                 mHandle.post(() -> mRingAdapter.setData(list));
             }
         });
+    }
+
+    private void selectConnection() {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, REQUEST_ID_PICK_CONTACT);
     }
 
     private void copyData(final String assetPath, final String filePath, final OnDataLoadListener listener) {
@@ -210,6 +233,14 @@ public class MainActivity extends AppCompatActivity {
             getPermissions();
         } else if (requestCode == REQUEST_ID_NOTIFICATION) {
             getPermissions();
+        } else if (requestCode == REQUEST_ID_PICK_CONTACT) {
+            if (data != null) {
+                String number = ContractsUtil.getContacts(this, data.getData());
+                if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(mSelectRingPath)) {
+                    mRingAdapter.setSelectIndex(mSelectRingIndex);
+                    Util.setRing(MainActivity.this, mSelectRingPath, number);
+                }
+            }
         }
     }
 
