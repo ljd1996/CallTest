@@ -28,6 +28,7 @@ import java.util.List;
 public class Util {
 
     private static final String TAG = "LLL";
+    public static final String NO_PATH = "/";
 
     public static void startMainActivity(Context context) {
         try {
@@ -88,6 +89,14 @@ public class Util {
             return result;
         }
         return null;
+    }
+
+    public static void setNoRing(Context context) {
+        if (context == null) {
+            return;
+        }
+        RingtoneManager.setActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE, null);
+        Toast.makeText(context, "已清除铃声！", Toast.LENGTH_SHORT).show();
     }
 
     public static void setRing(Context context, String path) {

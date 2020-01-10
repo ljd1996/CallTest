@@ -31,6 +31,7 @@ import com.hearing.calltest.MainActivity;
 import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.util.Util;
+import com.hearing.calltest.util.VideoRingHelper;
 import com.hearing.calltest.widget.FloatingView;
 
 import java.lang.reflect.Method;
@@ -60,7 +61,7 @@ public class PhoneListenService extends Service {
                 Log.d(TAG, this + " state = " + state + ", number = " + number);
 
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
-                    mFloatingView.show();
+                    mFloatingView.show(number);
                     mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
                 } else {
                     mFloatingView.hide();

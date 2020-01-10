@@ -1,7 +1,11 @@
 package com.hearing.calltest.util;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 
 /**
  * @author liujiadong
@@ -74,5 +78,55 @@ public class PermissionUtil {
         SharedPreferences.Editor editor = getSP(context).edit();
         editor.putBoolean(SETTING_PERMISSION_OPEN, true);
         editor.apply();
+    }
+
+    public static Intent getAutoStartSettingIntent(Context context) throws Exception {
+        ComponentName componentName = null;
+        String brand = Build.MANUFACTURER;
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        switch (brand.toLowerCase()) {
+            case "samsung"://三星
+                componentName = new ComponentName("com.samsung.android.sm",
+                        "com.samsung.android.sm.app.dashboard.SmartManagerDashBoardActivity");
+                break;
+            case "huawei"://华为
+                componentName = ComponentName.unflattenFromString("com.huawei.systemmanager/.startupmgr.ui.StartupNormalAppListActivity");
+                break;
+            case "xiaomi"://小米
+                componentName = new ComponentName("com.miui.securitycenter",
+                        "com.miui.permcenter.autostart.AutoStartManagementActivity");
+                break;
+            case "vivo"://VIVO
+                componentName = new ComponentName("com.iqoo.secure",
+                        "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity");
+                break;
+            case "oppo"://OPPO
+//            componentName = new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity");
+                componentName = new ComponentName("com.coloros.oppoguardelf",
+                        "com.coloros.powermanager.fuelgaue.PowerUsageModelActivity");
+                break;
+            case "yulong":
+            case "360"://360
+                componentName = new ComponentName("com.yulong.android.coolsafe",
+                        "com.yulong.android.coolsafe.ui.activity.autorun.AutoRunListActivity");
+                break;
+            case "meizu"://魅族
+                componentName = new ComponentName("com.meizu.safe",
+                        "com.meizu.safe.permission.SmartBGActivity");
+                break;
+            case "oneplus"://一加
+                componentName = new ComponentName("com.oneplus.security",
+                        "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity");
+                break;
+            case "letv"://乐视
+                intent.setAction("com.letv.android.permissionautoboot");
+            default://其他
+                intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                intent.setData(Uri.fromParts("package", context.getPackageName(), null));
+                break;
+        }
+        intent.setComponent(componentName);
+        return intent;
     }
 }

@@ -5,7 +5,6 @@ import android.media.MediaPlayer;
 import android.os.Build;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -67,6 +66,10 @@ public class FloatingView extends FrameLayout {
 
         mWindowManager = FloatingManager.getInstance(context);
         mVideoView = mView.findViewById(R.id.video_view);
+        mVideoView.setOnPreparedListener(mp -> {
+            mp.start();
+            mp.setLooping(true);
+        });
     }
 
     public void setPerson(String name, String number) {
@@ -82,8 +85,8 @@ public class FloatingView extends FrameLayout {
         this.mListener = listener;
     }
 
-    public void show() {
-        mVideoView.setVideoPath(VideoRingHelper.getInstance().getSelectVideo(mContext));
+    public void show(String number) {
+        mVideoView.setVideoPath(VideoRingHelper.getInstance().getSelectVideo(mContext, number));
         mAcceptView.setVisible();
         mEndCallView.setVisible();
 

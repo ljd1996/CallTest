@@ -1,9 +1,14 @@
 package com.hearing.calltest.util;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
+import android.util.Log;
 
 import com.hearing.calltest.preference.PreferenceUtil;
+import com.hearing.calltest.provider.CallProvider;
 
 /**
  * @author liujiadong
@@ -14,6 +19,10 @@ public class VideoRingHelper {
     private static final String VIDEO_RING_SP = "video_ring_sp";
     private static final String SELECT_VIDEO = "select_video";
     private static final String SELECT_RING = "select_ring";
+
+    public static final String UNKNOWN_NUMBER = "unknown";
+    private static final String AUTHORITY = "content://com.hearing.calltest.provider";
+    private static final Uri VIDEO_URI = Uri.parse(AUTHORITY);
 
 
     private VideoRingHelper() {
@@ -55,5 +64,24 @@ public class VideoRingHelper {
 
     public String getSelectRing(Context context) {
         return getString(context, SELECT_RING);
+    }
+
+    public void setSelectVideo(Context context, String number, String path) {
+        ContentValues values = new ContentValues();
+        values.put(CallProvider.NUMBER, number.replace(" ", ""));
+        values.put(CallProvider.PATH, path);
+        context.getContentResolver().insert(VIDEO_URI, values);
+    }
+
+    public String getSelectVideo(Context context, String number) {
+        Cursor cursor = context.getContentResolver().query(VIDEO_URI, null, CallProvider.NUMBER + "=\'" + number + "\'",
+                null, null);
+        String path = "";
+        if (cursor != null && cursor.moveToFirst()) {
+            path = cursor.getString(cursor.getColumnIndex(CallProvider.PATH));
+            cursor.close();
+        }
+        Log.d("LLL", "path = " + path);
+        return path;
     }
 }

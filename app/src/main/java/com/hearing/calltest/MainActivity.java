@@ -2,11 +2,9 @@ package com.hearing.calltest;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,7 +13,6 @@ import android.os.Looper;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.hearing.calltest.adapter.MyAdapter;
 import com.hearing.calltest.service.PhoneListenService;
 import com.hearing.calltest.util.ContractsUtil;
+import com.hearing.calltest.util.DialogUtil;
 import com.hearing.calltest.util.PermissionUtil;
 import com.hearing.calltest.util.Util;
 import com.hearing.calltest.util.VideoRingHelper;
@@ -57,7 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_ID_POPUP = 0;
     private static final int REQUEST_ID_PERMISSION = 1;
     private static final int REQUEST_ID_NOTIFICATION = 2;
-    private static final int REQUEST_ID_PICK_CONTACT = 3;
+    private static final int REQUEST_ID_PICK_RING_CONTACT = 3;
+    private static final int REQUEST_ID_PICK_VIDEO_CONTACT = 4;
 
     private RecyclerView mVideoRecycleView;
     private RecyclerView mRingRecycleView;
@@ -69,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
     private int mSelectRingIndex = 0;
     private String mSelectRingPath = "";
+
+    private int mSelectVideoIndex = 0;
+    private String mSelectVideoPath = "";
 
     private Handler mHandle = new Handler(Looper.getMainLooper());
 
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
+
         try {
             mVideoPath = getExternalFilesDir(null).getAbsolutePath() + "/video";
             mRingPath = getExternalFilesDir(null).getAbsolutePath() + "/ring";
@@ -108,43 +111,23 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoAdapter.setOnItemClickListener((index) -> {
             if (index == mVideoAdapter.getItemCount() - 1) {
-                mVideoAdapter.setSelectIndex(index);
-                VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, "");
+                setVideo(index, Util.NO_PATH);
                 return;
             }
             String path = mVideoPath + "/" + mVideoAdapter.getData(index);
             PlayerDialog dialog = new PlayerDialog(MainActivity.this, path);
-            dialog.setListener(() -> {
-                mVideoAdapter.setSelectIndex(index);
-                Util.setRing(MainActivity.this, path);
-                VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, path);
-            });
+            dialog.setListener(() -> setVideo(index, path));
             dialog.show();
         });
 
         mRingAdapter.setOnItemClickListener((index) -> {
             if (index == mRingAdapter.getItemCount() - 1) {
-                mRingAdapter.setSelectIndex(index);
-                Util.setRing(MainActivity.this, "/");
+                setRing(index, Util.NO_PATH);
                 return;
             }
             String path = mRingPath + "/" + mRingAdapter.getData(index);
             PlayerDialog dialog = new PlayerDialog(MainActivity.this, path);
-            dialog.setListener(() -> new AlertDialog.Builder(this)
-                    .setMessage("是否为指定联系人设置铃声？")
-                    .setPositiveButton("全部联系人", (dialog1, which) -> {
-                        dialog1.dismiss();
-                        mRingAdapter.setSelectIndex(index);
-                        Util.setRing(MainActivity.this, path);
-                    })
-                    .setNegativeButton("选择联系人", (dialog12, which) -> {
-                        dialog12.dismiss();
-                        mSelectRingIndex = index;
-                        mSelectRingPath = path;
-                        selectConnection();
-                    })
-                    .create()
-                    .show());
+            dialog.setListener(() -> setRing(index, path));
             dialog.show();
         });
 
@@ -162,9 +145,43 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void selectConnection() {
+    private void setRing(int index, String path) {
+        DialogUtil.showDialog(this, "是否为指定联系人设置铃声？", "全部联系人", "选择联系人",
+                (dialog, which) -> {
+                    dialog.dismiss();
+                    mRingAdapter.setSelectIndex(index);
+                    Util.setRing(MainActivity.this, path);
+                }, (dialog, which) -> {
+                    dialog.dismiss();
+                    mSelectRingIndex = index;
+                    mSelectRingPath = path;
+                    selectRingContact();
+                });
+    }
+
+    private void setVideo(int index, String path) {
+        DialogUtil.showDialog(this, "是否为指定联系人设置来电秀？", "全部联系人", "选择联系人",
+                (dialog, which) -> {
+                    dialog.dismiss();
+                    mVideoAdapter.setSelectIndex(index);
+                    Util.setRing(MainActivity.this, path);
+                    VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, VideoRingHelper.UNKNOWN_NUMBER, path);
+                }, (dialog, which) -> {
+                    dialog.dismiss();
+                    mSelectVideoIndex = index;
+                    mSelectVideoPath = path;
+                    selectVideoContact();
+                });
+    }
+
+    private void selectRingContact() {
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-        startActivityForResult(intent, REQUEST_ID_PICK_CONTACT);
+        startActivityForResult(intent, REQUEST_ID_PICK_RING_CONTACT);
+    }
+
+    private void selectVideoContact() {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, REQUEST_ID_PICK_VIDEO_CONTACT);
     }
 
     private void copyData(final String assetPath, final String filePath, final OnDataLoadListener listener) {
@@ -233,12 +250,21 @@ public class MainActivity extends AppCompatActivity {
             getPermissions();
         } else if (requestCode == REQUEST_ID_NOTIFICATION) {
             getPermissions();
-        } else if (requestCode == REQUEST_ID_PICK_CONTACT) {
+        } else if (requestCode == REQUEST_ID_PICK_RING_CONTACT) {
             if (data != null) {
                 String number = ContractsUtil.getContacts(this, data.getData());
                 if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(mSelectRingPath)) {
                     mRingAdapter.setSelectIndex(mSelectRingIndex);
                     Util.setRing(MainActivity.this, mSelectRingPath, number);
+                }
+            }
+        } else if (requestCode == REQUEST_ID_PICK_VIDEO_CONTACT) {
+            if (data != null) {
+                String number = ContractsUtil.getContacts(this, data.getData());
+                if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(mSelectVideoPath)) {
+                    mVideoAdapter.setSelectIndex(mSelectVideoIndex);
+                    Util.setRing(MainActivity.this, mSelectVideoPath, number);
+                    VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, number, mSelectVideoPath);
                 }
             }
         }
@@ -267,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton("确认", (dialog, which) -> {
                         PermissionUtil.getInstance().setLaunchOpen(MainActivity.this);
                         try {
-                            startActivity(getAutoStartSettingIntent(MainActivity.this));
+                            startActivity(PermissionUtil.getAutoStartSettingIntent(MainActivity.this));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -281,69 +307,15 @@ public class MainActivity extends AppCompatActivity {
                     .setPositiveButton("取消", (dialog, which) -> dialog.dismiss())
                     .setNegativeButton("确认", (dialog, which) -> {
                         PermissionUtil.getInstance().setSettingOpen(MainActivity.this);
-                        requestWriteSettings();
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivity(intent);
                     })
                     .create()
                     .show();
         }
 
         init();
-    }
-
-    private void requestWriteSettings() {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-        intent.setData(Uri.parse("package:" + getPackageName()));
-        startActivity(intent);
-    }
-
-    private Intent getAutoStartSettingIntent(Context context) throws Exception {
-        ComponentName componentName = null;
-        String brand = Build.MANUFACTURER;
-        Intent intent = new Intent();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        switch (brand.toLowerCase()) {
-            case "samsung"://三星
-                componentName = new ComponentName("com.samsung.android.sm",
-                        "com.samsung.android.sm.app.dashboard.SmartManagerDashBoardActivity");
-                break;
-            case "huawei"://华为
-                componentName = ComponentName.unflattenFromString("com.huawei.systemmanager/.startupmgr.ui.StartupNormalAppListActivity");
-                break;
-            case "xiaomi"://小米
-                componentName = new ComponentName("com.miui.securitycenter",
-                        "com.miui.permcenter.autostart.AutoStartManagementActivity");
-                break;
-            case "vivo"://VIVO
-                componentName = new ComponentName("com.iqoo.secure",
-                        "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity");
-                break;
-            case "oppo"://OPPO
-//            componentName = new ComponentName("com.oppo.safe", "com.oppo.safe.permission.startup.StartupAppListActivity");
-                componentName = new ComponentName("com.coloros.oppoguardelf",
-                        "com.coloros.powermanager.fuelgaue.PowerUsageModelActivity");
-                break;
-            case "yulong":
-            case "360"://360
-                componentName = new ComponentName("com.yulong.android.coolsafe",
-                        "com.yulong.android.coolsafe.ui.activity.autorun.AutoRunListActivity");
-                break;
-            case "meizu"://魅族
-                componentName = new ComponentName("com.meizu.safe",
-                        "com.meizu.safe.permission.SmartBGActivity");
-                break;
-            case "oneplus"://一加
-                componentName = new ComponentName("com.oneplus.security",
-                        "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity");
-                break;
-            case "letv"://乐视
-                intent.setAction("com.letv.android.permissionautoboot");
-            default://其他
-                intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
-                intent.setData(Uri.fromParts("package", context.getPackageName(), null));
-                break;
-        }
-        intent.setComponent(componentName);
-        return intent;
     }
 
     @Override
