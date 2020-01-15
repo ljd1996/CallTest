@@ -118,12 +118,22 @@ public class Util {
             Log.d(TAG, "uri is null");
             return;
         }
-        String delete = MediaStore.MediaColumns.DATA + "=\"" + sdFile.getAbsolutePath() + "\"";
 
-        Log.d(TAG, "delete = " + delete);
-        Log.d(TAG, "delete = " + context.getContentResolver().delete(uri, delete, null));
+        Uri newUri;
+        String query = MediaStore.MediaColumns.DATA + "=\"" + sdFile.getAbsolutePath() + "\"";
 
-        Uri newUri = context.getContentResolver().insert(uri, values);
+        Cursor cursor = context.getContentResolver().query(uri, null, query, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                String id = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+                newUri = Uri.parse(uri.toString() + "/" + id);
+            } else {
+                newUri = context.getContentResolver().insert(uri, values);
+            }
+            cursor.close();
+        } else {
+            newUri = context.getContentResolver().insert(uri, values);
+        }
 
         Log.d(TAG, "uri = " + uri);
         Log.d(TAG, "new uri = " + newUri);
