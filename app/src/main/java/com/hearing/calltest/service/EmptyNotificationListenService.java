@@ -1,14 +1,17 @@
 package com.hearing.calltest.service;
 
+import android.app.Notification;
 import android.content.Intent;
+import android.graphics.drawable.Icon;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.hearing.calltest.MainActivity;
 import com.hearing.calltest.util.Util;
+import com.hearing.calltest.util.VideoRingHelper;
+import com.hearing.calltest.widget.FloatingView;
 
 
 /**
@@ -18,6 +21,50 @@ import com.hearing.calltest.util.Util;
 public class EmptyNotificationListenService extends NotificationListenerService {
 
     private static final String TAG = "LLL";
+    private FloatingView mFloatingView;
+    private Notification.Action[] mActions;
+
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mFloatingView = new FloatingView(this);
+        mFloatingView.setListener(new FloatingView.OnCallListener() {
+            @Override
+            public void onGet() {
+                acceptCall();
+            }
+
+            @Override
+            public void onEnd() {
+                endCall();
+            }
+        });
+    }
+
+    private void endCall() {
+        if (mActions != null) {
+            try {
+                mActions[0].actionIntent.send();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                mActions = null;
+            }
+        }
+    }
+
+    private void acceptCall() {
+        if (mActions != null) {
+            try {
+                mActions[1].actionIntent.send();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                mActions = null;
+            }
+        }
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -29,12 +76,52 @@ public class EmptyNotificationListenService extends NotificationListenerService 
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.d(TAG, this + " onNotificationPosted");
         super.onNotificationPosted(sbn);
+        Log.d("getPackageName", sbn.getPackageName());
+
+        if (checkWhatsApp(sbn)) {
+            Bundle bundle = sbn.getNotification().extras;
+            if (bundle != null) {
+                mFloatingView.setPerson(String.valueOf(bundle.getCharSequence(Notification.EXTRA_TITLE)), null);
+            }
+            mActions = sbn.getNotification().actions;
+            mFloatingView.show(VideoRingHelper.UNKNOWN_NUMBER);
+
+            Icon small = sbn.getNotification().getSmallIcon();
+            if (small != null) {
+                mFloatingView.setHead(small.loadDrawable(this));
+            }
+            Icon large = sbn.getNotification().getLargeIcon();
+            if (large != null) {
+                mFloatingView.setHead(large.loadDrawable(this));
+            }
+        }
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.d(TAG, this + " onNotificationRemoved");
         super.onNotificationRemoved(sbn);
+        if (checkWhatsApp(sbn)) {
+            mActions = null;
+            mFloatingView.hide();
+        }
+    }
+
+    private boolean checkWhatsApp(StatusBarNotification sbn) {
+        if (sbn == null || sbn.getNotification() == null) {
+            return false;
+        }
+        try {
+            if ("com.whatsapp".equals(sbn.getPackageName()) && "call".equals(sbn.getNotification().category)
+                    && "call_notification_group".equals(sbn.getNotification().getGroup())
+                    && sbn.getNotification().actions != null) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return false;
     }
 
     @Override

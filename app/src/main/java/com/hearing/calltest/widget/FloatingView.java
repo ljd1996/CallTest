@@ -1,13 +1,14 @@
 package com.hearing.calltest.widget;
 
 import android.content.Context;
-import android.media.MediaPlayer;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -25,6 +26,7 @@ public class FloatingView extends FrameLayout {
     private VideoView mVideoView;
     private LockSlidingView mAcceptView;
     private LockSlidingView mEndCallView;
+    private ImageView mHeadView;
     private FloatingManager mWindowManager;
     private OnCallListener mListener;
     private boolean mShown = false;
@@ -37,6 +39,7 @@ public class FloatingView extends FrameLayout {
 
         mAcceptView = mView.findViewById(R.id.get_call);
         mEndCallView = mView.findViewById(R.id.end_call);
+        mHeadView = mView.findViewById(R.id.head_icon);
 
         mAcceptView.setListener(() -> {
             hide();
@@ -78,6 +81,17 @@ public class FloatingView extends FrameLayout {
         }
         if (!TextUtils.isEmpty(number)) {
             ((TextView) mView.findViewById(R.id.number_tv)).setText(number);
+        }
+    }
+
+    public void setPerson(int name, int number) {
+        ((TextView) mView.findViewById(R.id.name_tv)).setText(name);
+        ((TextView) mView.findViewById(R.id.number_tv)).setText(number);
+    }
+
+    public void setHead(Drawable drawable) {
+        if (drawable != null) {
+            mHeadView.setImageDrawable(drawable);
         }
     }
 

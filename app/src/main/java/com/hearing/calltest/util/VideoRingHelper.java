@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.hearing.calltest.preference.PreferenceUtil;
@@ -74,6 +75,15 @@ public class VideoRingHelper {
     }
 
     public String getSelectVideo(Context context, String number) {
+        String path = queryVideo(context, number);
+        if (TextUtils.isEmpty(path)) {
+            path = queryVideo(context, UNKNOWN_NUMBER);
+        }
+        Log.d("LLL", "path = " + path);
+        return path;
+    }
+
+    private String queryVideo(Context context, String number) {
         Cursor cursor = context.getContentResolver().query(VIDEO_URI, null, CallProvider.NUMBER + "=\'" + number + "\'",
                 null, null);
         String path = "";
@@ -81,7 +91,6 @@ public class VideoRingHelper {
             path = cursor.getString(cursor.getColumnIndex(CallProvider.PATH));
             cursor.close();
         }
-        Log.d("LLL", "path = " + path);
         return path;
     }
 }

@@ -34,6 +34,12 @@
         android:textSize="30sp"
         android:textStyle="bold" />
 
+    <ImageView
+        android:id="@+id/head_icon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerInParent="true" />
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

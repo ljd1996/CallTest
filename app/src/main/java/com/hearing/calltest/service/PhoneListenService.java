@@ -11,10 +11,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.Ringtone;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -33,12 +31,9 @@ import com.hearing.calltest.MainActivity;
 import com.hearing.calltest.R;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.util.Util;
-import com.hearing.calltest.util.VideoRingHelper;
 import com.hearing.calltest.widget.FloatingView;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.List;
 
 
@@ -73,27 +68,6 @@ public class PhoneListenService extends Service {
             }
         }
     };
-
-
-    private void playRingtone() {
-        try {
-            Ringtone ringtone = null;
-            Class cls = Ringtone.class;
-            Constructor[] constructors = cls.getDeclaredConstructors();
-            for (Constructor constructor : constructors) {
-                if (constructor.getModifiers() == Modifier.PUBLIC) {
-                    ringtone = (Ringtone) constructor.newInstance(this, true);
-                }
-            }
-            if (ringtone != null) {
-                Method method = cls.getDeclaredMethod("setUri", Uri.class);
-                method.invoke(ringtone, Uri.parse("content://media/external/audio/media/130598"));
-                ringtone.play();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void onCreate() {
