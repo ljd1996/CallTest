@@ -96,10 +96,10 @@ public class PhoneListenService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, this + " onStartCommand");
-        Notification notification = buildNotification();
-        if (notification != null) {
-            startForeground(1, notification);
-        }
+//        Notification notification = buildNotification();
+//        if (notification != null) {
+//            startForeground(1, notification);
+//        }
         return super.onStartCommand(intent, flags, startId);
     }
 

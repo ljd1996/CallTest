@@ -25,10 +25,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hearing.calltest.adapter.MyAdapter;
+import com.hearing.calltest.permission.PermissionHelper;
 import com.hearing.calltest.service.PhoneListenService;
 import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.util.DialogUtil;
-import com.hearing.calltest.util.PermissionUtil;
+import com.hearing.calltest.permission.PermissionSpHelper;
 import com.hearing.calltest.util.Util;
 import com.hearing.calltest.util.VideoRingHelper;
 import com.hearing.calltest.widget.PlayerDialog;
@@ -200,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
                     .setMessage("点击跳转到悬浮窗权限页面")
                     .setPositiveButton("确认", (dialog, which) -> {
                         Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
                         startActivityForResult(intent, REQUEST_ID_POPUP);
                     })
                     .setNegativeButton("取消", (dialog, which) -> MainActivity.this.finish())
@@ -272,28 +274,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void afterPermissions() {
         startService(new Intent(this, PhoneListenService.class));
-        if (!PermissionUtil.getInstance().isLockOpen(this)) {
+        if (!PermissionSpHelper.getInstance().isLockOpen(this)) {
             new AlertDialog.Builder(this)
                     .setMessage("请开启锁屏显示权限")
                     .setPositiveButton("取消", (dialog, which) -> dialog.dismiss())
                     .setNegativeButton("确认", (dialog, which) -> {
-                        PermissionUtil.getInstance().setLockOpen(MainActivity.this);
-                        Intent intent = new Intent();
-                        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.setData(Uri.fromParts("package", getPackageName(), null));
-                        startActivity(intent);
+                        PermissionSpHelper.getInstance().setLockOpen(MainActivity.this);
+                        PermissionHelper.getInstance().jumpPermissionPage(MainActivity.this);
                     })
                     .create()
                     .show();
         }
-        if (!PermissionUtil.getInstance().isLaunchOpen(this)) {
+        if (!PermissionSpHelper.getInstance().isLaunchOpen(this)) {
             new AlertDialog.Builder(this)
                     .setMessage("请开启自启动权限")
                     .setPositiveButton("取消", (dialog, which) -> dialog.dismiss())
                     .setNegativeButton("确认", (dialog, which) -> {
-                        PermissionUtil.getInstance().setLaunchOpen(MainActivity.this);
+                        PermissionSpHelper.getInstance().setLaunchOpen(MainActivity.this);
                         try {
-                            startActivity(PermissionUtil.getAutoStartSettingIntent(MainActivity.this));
+                            startActivity(PermissionHelper.getInstance().getAutoStartSettingIntent(MainActivity.this));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -301,12 +300,12 @@ public class MainActivity extends AppCompatActivity {
                     .create()
                     .show();
         }
-        if (!PermissionUtil.getInstance().isSettingOpen(this)) {
+        if (!PermissionSpHelper.getInstance().isSettingOpen(this)) {
             new AlertDialog.Builder(this)
                     .setMessage("请允许修改系统设置")
                     .setPositiveButton("取消", (dialog, which) -> dialog.dismiss())
                     .setNegativeButton("确认", (dialog, which) -> {
-                        PermissionUtil.getInstance().setSettingOpen(MainActivity.this);
+                        PermissionSpHelper.getInstance().setSettingOpen(MainActivity.this);
                         Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
                         intent.setData(Uri.parse("package:" + getPackageName()));
                         startActivity(intent);
