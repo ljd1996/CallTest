@@ -67,7 +67,7 @@ public class ContactHelper {
      * @return
      */
     public String getContactName(Context context, String number) {
-        if (TextUtils.isEmpty(number)) {
+        if (context == null || TextUtils.isEmpty(number)) {
             return null;
         }
         final ContentResolver resolver = context.getContentResolver();

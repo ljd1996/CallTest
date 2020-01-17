@@ -1,11 +1,7 @@
 package com.hearing.calltest.util;
 
 import android.content.Context;
-import android.content.Intent;
 import android.text.TextUtils;
-import android.widget.Toast;
-
-import com.hearing.calltest.service.PhoneListenService;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,15 +15,6 @@ import java.util.List;
  * @since 2020/1/3
  */
 public class Util {
-
-    public static void startMainActivity(Context context) {
-        try {
-            Toast.makeText(context, "service connected", Toast.LENGTH_LONG).show();
-            context.startService(new Intent(context, PhoneListenService.class));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * 复制asset文件到指定目录

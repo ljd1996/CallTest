@@ -12,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.VideoView;
 
-import com.hearing.calltest.FloatingManager;
 import com.hearing.calltest.R;
 import com.hearing.calltest.business.VideoDBHelper;
 
@@ -22,12 +21,12 @@ import com.hearing.calltest.business.VideoDBHelper;
  */
 public class FloatingView extends FrameLayout {
     private Context mContext;
+    private WindowManager mWindowManager;
     private View mView;
     private VideoView mVideoView;
     private LockSlidingView mAcceptView;
     private LockSlidingView mEndCallView;
     private ImageView mHeadView;
-    private FloatingManager mWindowManager;
     private OnCallListener mListener;
     private boolean mShown = false;
 
@@ -67,7 +66,7 @@ public class FloatingView extends FrameLayout {
             }
         });
 
-        mWindowManager = FloatingManager.getInstance(context);
+        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         mVideoView = mView.findViewById(R.id.video_view);
         mVideoView.setOnPreparedListener(mp -> {
             mp.start();
@@ -117,7 +116,10 @@ public class FloatingView extends FrameLayout {
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
         params.width = LayoutParams.MATCH_PARENT;
         params.height = LayoutParams.MATCH_PARENT;
-        mWindowManager.addView(mView, params);
+        try {
+            mWindowManager.addView(mView, params);
+        } catch (Exception e) {
+        }
         mShown = true;
 
         mVideoView.start();
@@ -125,9 +127,12 @@ public class FloatingView extends FrameLayout {
 
     public void hide() {
         if (mShown) {
-            mWindowManager.removeView(mView);
-            mShown = false;
-            mVideoView.pause();
+            try {
+                mWindowManager.removeView(mView);
+                mShown = false;
+                mVideoView.pause();
+            } catch (Exception e) {
+            }
         }
     }
 

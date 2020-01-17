@@ -323,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ID_PERMISSION && grantResults.length > 0) {
             for (int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                    finish();
+//                    finish();
                 }
             }
             afterPermissions();
