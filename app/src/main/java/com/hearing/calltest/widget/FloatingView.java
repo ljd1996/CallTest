@@ -26,6 +26,8 @@ public class FloatingView extends FrameLayout {
     private VideoView mVideoView;
     private LockSlidingView mAcceptView;
     private LockSlidingView mEndCallView;
+    private TextView mNameView;
+    private TextView mNumberView;
     private ImageView mHeadView;
     private OnCallListener mListener;
     private boolean mShown = false;
@@ -38,6 +40,8 @@ public class FloatingView extends FrameLayout {
 
         mAcceptView = mView.findViewById(R.id.get_call);
         mEndCallView = mView.findViewById(R.id.end_call);
+        mNameView = mView.findViewById(R.id.name_tv);
+        mNumberView = mView.findViewById(R.id.number_tv);
         mHeadView = mView.findViewById(R.id.head_icon);
 
         mAcceptView.setListener(() -> {
@@ -76,16 +80,11 @@ public class FloatingView extends FrameLayout {
 
     public void setPerson(String name, String number) {
         if (!TextUtils.isEmpty(name)) {
-            ((TextView) mView.findViewById(R.id.name_tv)).setText(name);
+            mNameView.setText(name);
         }
         if (!TextUtils.isEmpty(number)) {
-            ((TextView) mView.findViewById(R.id.number_tv)).setText(number);
+            mNumberView.setText(number);
         }
-    }
-
-    public void setPerson(int name, int number) {
-        ((TextView) mView.findViewById(R.id.name_tv)).setText(name);
-        ((TextView) mView.findViewById(R.id.number_tv)).setText(number);
     }
 
     public void setHead(Drawable drawable) {
@@ -130,6 +129,9 @@ public class FloatingView extends FrameLayout {
             try {
                 mWindowManager.removeView(mView);
                 mShown = false;
+                mNameView.setText("");
+                mNumberView.setText("");
+                mHeadView.setImageDrawable(null);
                 mVideoView.pause();
             } catch (Exception e) {
             }

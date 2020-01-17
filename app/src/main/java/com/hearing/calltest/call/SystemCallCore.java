@@ -11,8 +11,10 @@ import android.content.pm.PackageManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.service.notification.StatusBarNotification;
 import android.telecom.TelecomManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -23,7 +25,7 @@ import android.view.KeyEvent;
 
 import com.android.internal.telephony.ITelephony;
 import com.hearing.calltest.business.ContactHelper;
-import com.hearing.calltest.service.EmptyNotificationListenService;
+import com.hearing.calltest.service.PhoneListenService;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -52,7 +54,9 @@ public class SystemCallCore extends CallCore {
 
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
                     mFloatingView.show(number);
-                    mFloatingView.setPerson(ContactHelper.getInstance().getContactName(mContext, number), number);
+                    if (canReadContact()) {
+                        mFloatingView.setPerson(ContactHelper.getInstance().getContactName(mContext, number), number);
+                    }
                 } else {
                     mFloatingView.hide();
                 }
@@ -125,7 +129,34 @@ public class SystemCallCore extends CallCore {
 
     @Override
     public void onNotificationPosted(Notification notification) {
+        if (mContext == null || notification == null) {
+            return;
+        }
+        if (!canReadContact()) {
+            Bundle bundle = notification.extras;
+            if (bundle != null) {
+                mFloatingView.setPerson(String.valueOf(bundle.getCharSequence(Notification.EXTRA_TITLE)), null);
+            }
+        }
+    }
 
+    @Override
+    public void onDestroy() {
+        if (mContext!=null) {
+            mContext.unregisterReceiver(mPhoneStateReceiver);
+        }
+    }
+
+    public boolean isCall(StatusBarNotification sbn) {
+        return sbn != null && sbn.getNotification() != null &&
+                "com.google.android.dialer".equals(sbn.getPackageName())
+                && sbn.getNotification().actions != null;
+    }
+
+    private boolean canReadContact() {
+        return mContext != null
+                && mContext.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
+                && mContext.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
@@ -145,7 +176,7 @@ public class SystemCallCore extends CallCore {
         }
 
         try {
-            List<MediaController> controllers = sessionManager.getActiveSessions(new ComponentName(mContext, EmptyNotificationListenService.class));
+            List<MediaController> controllers = sessionManager.getActiveSessions(new ComponentName(mContext, PhoneListenService.class));
 
             for (MediaController m : controllers) {
                 if ("com.android.server.telecom".equals(m.getPackageName())) {

@@ -49,6 +49,8 @@ public abstract class CallCore {
 
     public abstract void onNotificationPosted(Notification notification);
 
+    public abstract void onDestroy();
+
     public void onNotificationRemoved() {
         mActions = null;
         if (mFloatingView != null) {

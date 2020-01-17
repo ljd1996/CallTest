@@ -66,4 +66,9 @@ public class WhatsAppCallCore extends CallCore {
         }
     }
 
+    @Override
+    public void onDestroy() {
+
+    }
+
 }

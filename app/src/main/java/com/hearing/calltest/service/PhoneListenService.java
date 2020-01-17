@@ -4,53 +4,35 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.IBinder;
+import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.Nullable;
 
 import com.hearing.calltest.MainActivity;
 import com.hearing.calltest.R;
 import com.hearing.calltest.call.CallCore;
+import com.hearing.calltest.call.SystemCallCore;
 
 
 /**
  * @author liujiadong
  * @since 2019/12/17
  */
-public class PhoneListenService extends Service {
+public class PhoneListenService extends NotificationListenerService {
 
     public static final String TAG = "PhoneListenService";
 
+    private SystemCallCore mSystemCallCore;
+    private CallCore mCallCore;
 
-    public static void startSelf(Context context) {
-        try {
-            Toast.makeText(context, "service connected", Toast.LENGTH_LONG).show();
-            context.startService(new Intent(context, PhoneListenService.class));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        CallCore.createSystemCallCore(this);
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, getClass().getSimpleName() + ": onStartCommand");
-//        Notification notification = buildNotification();
-//        if (notification != null) {
-//            startForeground(1, notification);
-//        }
-        return super.onStartCommand(intent, flags, startId);
+        mSystemCallCore = (SystemCallCore) CallCore.createSystemCallCore(this);
     }
 
     private Notification buildNotification() {
@@ -88,15 +70,46 @@ public class PhoneListenService extends Service {
     }
 
     @Override
-    public void onDestroy() {
-        Log.d(TAG, getClass().getSimpleName() + ": onDestroy");
-        startSelf(this);
-        super.onDestroy();
+    public void onNotificationPosted(StatusBarNotification sbn) {
+        Log.d(TAG, getClass().getSimpleName() + ": onNotificationPosted: " + sbn);
+        super.onNotificationPosted(sbn);
+
+        if (mSystemCallCore.isCall(sbn)) {
+            mSystemCallCore.onNotificationPosted(sbn.getNotification());
+        }
+
+        mCallCore = CallCore.createCallCore(this, sbn);
+        if (mCallCore != null) {
+            mCallCore.onNotificationPosted(sbn.getNotification());
+        }
     }
 
-    @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        Log.d(TAG, getClass().getSimpleName() + ": onNotificationRemoved");
+        super.onNotificationRemoved(sbn);
+
+        if (mCallCore != null) {
+            mCallCore.onNotificationRemoved();
+        }
+    }
+
+    @Override
+    public void onListenerConnected() {
+        Log.d(TAG, getClass().getSimpleName() + ": onListenerConnected");
+        super.onListenerConnected();
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        Log.d(TAG, getClass().getSimpleName() + ": onListenerDisconnected");
+        super.onListenerDisconnected();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, getClass().getSimpleName() + ": onDestroy");
+        mSystemCallCore.onDestroy();
+        super.onDestroy();
     }
 }

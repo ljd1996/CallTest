@@ -1,15 +1,10 @@
 package com.hearing.calltest.business;
 
-import android.Manifest;
-import android.app.Notification;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.service.notification.StatusBarNotification;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -23,8 +18,6 @@ public class ContactHelper {
 
     private static final String TAG = "LLL";
 
-    private String mTitle;
-
 
     private ContactHelper() {
     }
@@ -35,33 +28,6 @@ public class ContactHelper {
 
     public static ContactHelper getInstance() {
         return SingleTon.sInstance;
-    }
-
-
-    /**
-     * 从通知栏读取来电信息
-     *
-     * @param sbn
-     */
-    public void setContact(StatusBarNotification sbn) {
-        if (isCall(sbn)) {
-            Bundle bundle = sbn.getNotification().extras;
-            if (bundle != null) {
-                mTitle = String.valueOf(bundle.getCharSequence(Notification.EXTRA_TITLE));
-            }
-        }
-    }
-
-    public void clearContact(StatusBarNotification sbn) {
-        if (isCall(sbn)) {
-            mTitle = null;
-        }
-    }
-
-    private boolean isCall(StatusBarNotification sbn) {
-        return sbn != null && sbn.getNotification() != null &&
-                "com.google.android.dialer".equals(sbn.getPackageName())
-                && sbn.getNotification().actions != null;
     }
 
     /**
@@ -100,17 +66,7 @@ public class ContactHelper {
      * @return
      */
     public String getContactName(Context context, String number) {
-        if (context == null) {
-            return null;
-        }
-
-        if (context.checkSelfPermission(Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED
-                || context.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("LLL", "mTitle = " + mTitle);
-            return mTitle;
-        }
-
-        if (TextUtils.isEmpty(number)) {
+        if (context == null || TextUtils.isEmpty(number)) {
             return null;
         }
 

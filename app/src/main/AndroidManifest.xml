@@ -50,18 +50,9 @@
             android:name=".service.PhoneListenService"
             android:enabled="true"
             android:exported="false"
-            android:process=":phone">
-            <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".service.EmptyNotificationListenService"
-            android:enabled="true"
-            android:exported="false"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
