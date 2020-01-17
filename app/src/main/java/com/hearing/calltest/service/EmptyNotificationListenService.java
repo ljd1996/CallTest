@@ -28,7 +28,7 @@ public class EmptyNotificationListenService extends NotificationListenerService 
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.d(TAG, getClass().getSimpleName() + ": onNotificationPosted");
+        Log.d(TAG, getClass().getSimpleName() + ": onNotificationPosted: " + sbn);
         super.onNotificationPosted(sbn);
 
         mCallCore = CallCore.createCallCore(this, sbn);
@@ -40,7 +40,7 @@ public class EmptyNotificationListenService extends NotificationListenerService 
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.d(TAG, getClass().getSimpleName() + ": onNotificationRemoved: " + sbn);
+        Log.d(TAG, getClass().getSimpleName() + ": onNotificationRemoved");
         super.onNotificationRemoved(sbn);
 
         if (mCallCore != null) {
