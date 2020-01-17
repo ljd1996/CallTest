@@ -1,70 +1,34 @@
-package com.hearing.calltest.util;
+package com.hearing.calltest.business;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.hearing.calltest.preference.PreferenceUtil;
 import com.hearing.calltest.provider.CallProvider;
 
 /**
  * @author liujiadong
  * @since 2020/1/8
  */
-public class VideoRingHelper {
-
-    private static final String VIDEO_RING_SP = "video_ring_sp";
-    private static final String SELECT_VIDEO = "select_video";
-    private static final String SELECT_RING = "select_ring";
+public class VideoDBHelper {
 
     public static final String UNKNOWN_NUMBER = "unknown";
     private static final String AUTHORITY = "content://com.hearing.calltest.provider";
     private static final Uri VIDEO_URI = Uri.parse(AUTHORITY);
 
 
-    private VideoRingHelper() {
+    private VideoDBHelper() {
     }
 
     private static class SingleTon {
-        private static VideoRingHelper sInstance = new VideoRingHelper();
+        private static VideoDBHelper sInstance = new VideoDBHelper();
     }
 
-    public static VideoRingHelper getInstance() {
+    public static VideoDBHelper getInstance() {
         return SingleTon.sInstance;
-    }
-
-    private SharedPreferences getSp(Context context) {
-        return PreferenceUtil.getSharedPreference(context, VIDEO_RING_SP);
-    }
-
-    private void setString(Context context, String key, String value) {
-        SharedPreferences.Editor editor = getSp(context).edit();
-        editor.putString(key, value);
-        editor.apply();
-    }
-
-    private String getString(Context context, String key) {
-        return getSp(context).getString(key, "");
-    }
-
-    public void setSelectVideo(Context context, String path) {
-        setString(context, SELECT_VIDEO, path);
-    }
-
-    public void setSelectRing(Context context, String path) {
-        setString(context, SELECT_RING, path);
-    }
-
-    public String getSelectVideo(Context context) {
-        return getString(context, SELECT_VIDEO);
-    }
-
-    public String getSelectRing(Context context) {
-        return getString(context, SELECT_RING);
     }
 
     public void setSelectVideo(Context context, String number, String path) {

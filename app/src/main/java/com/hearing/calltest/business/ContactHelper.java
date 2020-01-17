@@ -1,4 +1,4 @@
-package com.hearing.calltest.util;
+package com.hearing.calltest.business;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -12,13 +12,33 @@ import com.hearing.calltest.R;
 
 /**
  * @author liujiadong
- * @since 2019/12/17
+ * @since 2020/1/17
  */
-public class ContractsUtil {
+public class ContactHelper {
 
     private static final String TAG = "LLL";
 
-    public static String getContacts(Context context, Uri contactUri) {
+
+    private ContactHelper() {
+    }
+
+    private static class SingleTon {
+        private static ContactHelper sInstance = new ContactHelper();
+    }
+
+    public static ContactHelper getInstance() {
+        return SingleTon.sInstance;
+    }
+
+
+    /**
+     * 根据uri查找电话号码
+     *
+     * @param context
+     * @param contactUri
+     * @return
+     */
+    public String getContacts(Context context, Uri contactUri) {
         String phoneNumber = "";
         if (context == null || contactUri == null) {
             return "";
@@ -39,7 +59,14 @@ public class ContractsUtil {
         return phoneNumber;
     }
 
-    public static String getContactName(Context context, String number) {
+    /**
+     * 根据号码查找联系人姓名
+     *
+     * @param context
+     * @param number
+     * @return
+     */
+    public String getContactName(Context context, String number) {
         if (TextUtils.isEmpty(number)) {
             return null;
         }

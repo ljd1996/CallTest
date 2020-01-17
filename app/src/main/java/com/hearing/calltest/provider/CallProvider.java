@@ -10,8 +10,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.hearing.calltest.db.DataBaseHelper;
-
 
 /**
  * @author liujiadong

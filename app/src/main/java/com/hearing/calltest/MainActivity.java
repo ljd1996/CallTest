@@ -25,13 +25,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.hearing.calltest.adapter.MyAdapter;
+import com.hearing.calltest.business.ContactHelper;
+import com.hearing.calltest.business.RingtoneHelper;
 import com.hearing.calltest.permission.PermissionHelper;
 import com.hearing.calltest.service.PhoneListenService;
-import com.hearing.calltest.util.ContractsUtil;
 import com.hearing.calltest.util.DialogUtil;
 import com.hearing.calltest.permission.PermissionSpHelper;
 import com.hearing.calltest.util.Util;
-import com.hearing.calltest.util.VideoRingHelper;
+import com.hearing.calltest.business.VideoDBHelper;
 import com.hearing.calltest.widget.PlayerDialog;
 
 import java.util.List;
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
         mVideoAdapter.setOnItemClickListener((index) -> {
             if (index == mVideoAdapter.getItemCount() - 1) {
-                setVideo(index, Util.NO_PATH);
+                setVideo(index, RingtoneHelper.NO_PATH);
                 return;
             }
             String path = mVideoPath + "/" + mVideoAdapter.getData(index);
@@ -123,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         mRingAdapter.setOnItemClickListener((index) -> {
             if (index == mRingAdapter.getItemCount() - 1) {
-                setRing(index, Util.NO_PATH);
+                setRing(index, RingtoneHelper.NO_PATH);
                 return;
             }
             String path = mRingPath + "/" + mRingAdapter.getData(index);
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 (dialog, which) -> {
                     dialog.dismiss();
                     mRingAdapter.setSelectIndex(index);
-                    Util.setRing(MainActivity.this, path);
+                    RingtoneHelper.setRing(MainActivity.this, path);
                 }, (dialog, which) -> {
                     dialog.dismiss();
                     mSelectRingIndex = index;
@@ -165,8 +166,8 @@ public class MainActivity extends AppCompatActivity {
                 (dialog, which) -> {
                     dialog.dismiss();
                     mVideoAdapter.setSelectIndex(index);
-                    Util.setRing(MainActivity.this, path);
-                    VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, VideoRingHelper.UNKNOWN_NUMBER, path);
+                    RingtoneHelper.setRing(MainActivity.this, path);
+                    VideoDBHelper.getInstance().setSelectVideo(MainActivity.this, VideoDBHelper.UNKNOWN_NUMBER, path);
                 }, (dialog, which) -> {
                     dialog.dismiss();
                     mSelectVideoIndex = index;
@@ -254,19 +255,19 @@ public class MainActivity extends AppCompatActivity {
             getPermissions();
         } else if (requestCode == REQUEST_ID_PICK_RING_CONTACT) {
             if (data != null) {
-                String number = ContractsUtil.getContacts(this, data.getData());
+                String number = ContactHelper.getInstance().getContacts(this, data.getData());
                 if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(mSelectRingPath)) {
                     mRingAdapter.setSelectIndex(mSelectRingIndex);
-                    Util.setRing(MainActivity.this, mSelectRingPath, number);
+                    RingtoneHelper.setRing(MainActivity.this, mSelectRingPath, number);
                 }
             }
         } else if (requestCode == REQUEST_ID_PICK_VIDEO_CONTACT) {
             if (data != null) {
-                String number = ContractsUtil.getContacts(this, data.getData());
+                String number = ContactHelper.getInstance().getContacts(this, data.getData());
                 if (!TextUtils.isEmpty(number) && !TextUtils.isEmpty(mSelectVideoPath)) {
                     mVideoAdapter.setSelectIndex(mSelectVideoIndex);
-                    Util.setRing(MainActivity.this, mSelectVideoPath, number);
-                    VideoRingHelper.getInstance().setSelectVideo(MainActivity.this, number, mSelectVideoPath);
+                    RingtoneHelper.setRing(MainActivity.this, mSelectVideoPath, number);
+                    VideoDBHelper.getInstance().setSelectVideo(MainActivity.this, number, mSelectVideoPath);
                 }
             }
         }

@@ -10,7 +10,7 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import com.hearing.calltest.util.Util;
-import com.hearing.calltest.util.VideoRingHelper;
+import com.hearing.calltest.business.VideoDBHelper;
 import com.hearing.calltest.widget.FloatingView;
 
 
@@ -84,7 +84,7 @@ public class EmptyNotificationListenService extends NotificationListenerService 
                 mFloatingView.setPerson(String.valueOf(bundle.getCharSequence(Notification.EXTRA_TITLE)), null);
             }
             mActions = sbn.getNotification().actions;
-            mFloatingView.show(VideoRingHelper.UNKNOWN_NUMBER);
+            mFloatingView.show(VideoDBHelper.UNKNOWN_NUMBER);
 
             Icon small = sbn.getNotification().getSmallIcon();
             if (small != null) {

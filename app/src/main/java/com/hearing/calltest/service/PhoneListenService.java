@@ -29,7 +29,7 @@ import androidx.annotation.Nullable;
 import com.android.internal.telephony.ITelephony;
 import com.hearing.calltest.MainActivity;
 import com.hearing.calltest.R;
-import com.hearing.calltest.util.ContractsUtil;
+import com.hearing.calltest.business.ContactHelper;
 import com.hearing.calltest.util.Util;
 import com.hearing.calltest.widget.FloatingView;
 
@@ -61,7 +61,7 @@ public class PhoneListenService extends Service {
 
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
                     mFloatingView.show(number);
-                    mFloatingView.setPerson(ContractsUtil.getContactName(PhoneListenService.this, number), number);
+                    mFloatingView.setPerson(ContactHelper.getInstance().getContactName(PhoneListenService.this, number), number);
                 } else {
                     mFloatingView.hide();
                 }

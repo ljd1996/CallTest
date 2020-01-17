@@ -14,7 +14,7 @@ import android.widget.VideoView;
 
 import com.hearing.calltest.FloatingManager;
 import com.hearing.calltest.R;
-import com.hearing.calltest.util.VideoRingHelper;
+import com.hearing.calltest.business.VideoDBHelper;
 
 /**
  * @author liujiadong
@@ -100,7 +100,7 @@ public class FloatingView extends FrameLayout {
     }
 
     public void show(String number) {
-        mVideoView.setVideoPath(VideoRingHelper.getInstance().getSelectVideo(mContext, number));
+        mVideoView.setVideoPath(VideoDBHelper.getInstance().getSelectVideo(mContext, number));
         mAcceptView.setVisible();
         mEndCallView.setVisible();
 
