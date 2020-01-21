@@ -15,4 +15,6 @@
     <string name="get_permission">获取权限</string>
     <string name="apply_video_success">应用来电秀成功!</string>
     <string name="apply_ringtone_success">应用来电秀铃声成功!</string>
+    <string name="open_lock">建议开启锁屏显示权限</string>
+    <string name="go_open_lock">去开启</string>
 </resources>

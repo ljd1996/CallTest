@@ -75,6 +75,7 @@ public class DetailApplyActivity extends AppCompatActivity {
         if (PermissionManager.getInstance().isSettingsEnabled(this)) {
             if (mSetRingtone) {
                 RingtoneHelper.setRing(this, mVideoPath);
+                mRingtoneView.setVisibility(View.VISIBLE);
             }
         }
     }

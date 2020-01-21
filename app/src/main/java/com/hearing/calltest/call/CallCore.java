@@ -1,12 +1,13 @@
 package com.hearing.calltest.call;
 
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.content.Context;
 import android.service.notification.StatusBarNotification;
-
-import androidx.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.hearing.calltest.widget.FloatingView;
+import com.hearing.calltest.widget.LockGuideView;
 
 /**
  * @author liujiadong
@@ -14,33 +15,77 @@ import com.hearing.calltest.widget.FloatingView;
  */
 public abstract class CallCore {
 
-    protected static final String TAG = "LLL";
+    protected static final String TAG = "CallCore";
 
-    protected Context mContext;
-    protected FloatingView mFloatingView;
-    protected Notification.Action[] mActions;
+    public static final String SYSTEM_CALL_PKG = "system_call";
+    public static final String WHATS_APP_CALL_PKG = "com.whatsapp";
 
-    CallCore(Context context) {
-        init(context);
+    Context mContext;
+    FloatingView mFloatingView;
+    Notification.Action[] mActions;
+
+    private String mPackage;
+    private boolean mClicked = false;
+
+    CallCore(Context context, String pkg) {
+        init(context, pkg);
     }
 
-    private void init(Context context) {
+    private void init(Context context, String pkg) {
         if (context == null) {
             return;
         }
         mContext = context;
+        mPackage = pkg;
         mFloatingView = new FloatingView(context);
         mFloatingView.setListener(new FloatingView.OnCallListener() {
             @Override
             public void onGet() {
+                mClicked = true;
                 acceptCall();
             }
 
             @Override
             public void onEnd() {
+                mClicked = true;
                 endCall();
             }
         });
+    }
+
+    public String getPackage() {
+        return mPackage;
+    }
+
+    public void setPackage(String aPackage) {
+        mPackage = aPackage;
+    }
+
+    /**
+     * 有来电时：未接/挂断/通话结束
+     */
+    void showLockGuide() {
+        if (!mClicked && isLocked()) {
+            LockGuideView guideView = new LockGuideView(mContext);
+            guideView.show();
+        } else {
+            mClicked = false;
+        }
+    }
+
+    /**
+     * 是否锁屏
+     * 有密码亮屏：isKeyguardLocked = false, isKeyguardSecure = true, isDeviceLocked = false, isDeviceSecure = true
+     * 无密码亮屏：isKeyguardLocked = false, isKeyguardSecure = false, isDeviceLocked = false, isDeviceSecure = false
+     * 有密码锁屏：isKeyguardLocked = true, isKeyguardSecure = true, isDeviceLocked = true, isDeviceSecure = true
+     * 无密码锁屏：isKeyguardLocked = true, isKeyguardSecure = false, isDeviceLocked = false, isDeviceSecure = false
+     */
+    protected boolean isLocked() {
+        if (mContext != null) {
+            KeyguardManager manager = (KeyguardManager) mContext.getSystemService(Context.KEYGUARD_SERVICE);
+            return manager != null && manager.isKeyguardLocked();
+        }
+        return false;
     }
 
     protected abstract void acceptCall();
@@ -49,35 +94,26 @@ public abstract class CallCore {
 
     public abstract void onNotificationPosted(Notification notification);
 
+    public abstract void onNotificationRemoved(Notification notification);
+
     public abstract void onDestroy();
 
-    public void onNotificationRemoved() {
-        mActions = null;
-        if (mFloatingView != null) {
-            mFloatingView.hide();
-        }
-    }
-
-    public static CallCore createCallCore(@NonNull Context context, StatusBarNotification sbn) {
-        if (context == null || sbn == null || sbn.getNotification() == null) {
+    public static CallCore createCallCore(Context context, String pkg) {
+        if (context == null || TextUtils.isEmpty(pkg)) {
             return null;
         }
         try {
-            if ("com.whatsapp".equals(sbn.getPackageName()) && "call".equals(sbn.getNotification().category)
-                    && "call_notification_group".equals(sbn.getNotification().getGroup())
-                    && sbn.getNotification().actions != null) {
-                return new WhatsAppCallCore(context);
+            switch (pkg) {
+                case SYSTEM_CALL_PKG:
+                    return new SystemCallCore(context, pkg);
+                case WHATS_APP_CALL_PKG:
+                    return new WhatsAppCallCore(context, pkg);
+                default:
+                    return null;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static CallCore createSystemCallCore(Context context) {
-        if (context == null) {
-            return null;
-        }
-        return new SystemCallCore(context);
     }
 }

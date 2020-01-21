@@ -16,6 +16,9 @@ import com.hearing.calltest.R;
 import com.hearing.calltest.call.CallCore;
 import com.hearing.calltest.call.SystemCallCore;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * @author liujiadong
@@ -26,13 +29,13 @@ public class PhoneListenService extends NotificationListenerService {
     public static final String TAG = "PhoneListenService";
 
     private SystemCallCore mSystemCallCore;
-    private CallCore mCallCore;
+    private Map<String, CallCore> mCallCores = new HashMap<>();
 
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mSystemCallCore = (SystemCallCore) CallCore.createSystemCallCore(this);
+        mSystemCallCore = (SystemCallCore) CallCore.createCallCore(this, CallCore.SYSTEM_CALL_PKG);
     }
 
     private Notification buildNotification() {
@@ -71,26 +74,38 @@ public class PhoneListenService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.d(TAG, getClass().getSimpleName() + ": onNotificationPosted: " + sbn);
         super.onNotificationPosted(sbn);
+
+        if (sbn == null) {
+            return;
+        }
 
         if (mSystemCallCore.isCall(sbn)) {
             mSystemCallCore.onNotificationPosted(sbn.getNotification());
         }
 
-        mCallCore = CallCore.createCallCore(this, sbn);
-        if (mCallCore != null) {
-            mCallCore.onNotificationPosted(sbn.getNotification());
+        CallCore callCore;
+        if (mCallCores.containsKey(sbn.getPackageName())) {
+            callCore = mCallCores.get(sbn.getPackageName());
+        } else {
+            callCore = CallCore.createCallCore(this, sbn.getPackageName());
+            if (callCore != null) {
+                mCallCores.put(callCore.getPackage(), callCore);
+            }
+        }
+
+        if (callCore != null) {
+            callCore.onNotificationPosted(sbn.getNotification());
         }
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.d(TAG, getClass().getSimpleName() + ": onNotificationRemoved");
         super.onNotificationRemoved(sbn);
 
-        if (mCallCore != null) {
-            mCallCore.onNotificationRemoved();
+        CallCore callCore = mCallCores.get(sbn.getPackageName());
+        if (callCore != null) {
+            callCore.onNotificationRemoved(sbn.getNotification());
         }
     }
 

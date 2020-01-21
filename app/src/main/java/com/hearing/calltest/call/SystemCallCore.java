@@ -28,6 +28,7 @@ import com.hearing.calltest.business.ContactHelper;
 import com.hearing.calltest.service.PhoneListenService;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +37,12 @@ import java.util.List;
  */
 public class SystemCallCore extends CallCore {
 
+    private static final List<String> mCallPkgs = new ArrayList<>();
+
+    private static final int STATUS_NONE = 0;
+    private static final int STATUS_RINGING = 1;
+
+    private int mStatus = STATUS_NONE;
     private TelecomManager mTelManager;
     private BroadcastReceiver mPhoneStateReceiver = new BroadcastReceiver() {
 
@@ -53,20 +60,27 @@ public class SystemCallCore extends CallCore {
                 Log.d(TAG, this + " state = " + state + ", number = " + number);
 
                 if (TelephonyManager.EXTRA_STATE_RINGING.equalsIgnoreCase(state)) {
+                    if (isLocked()) {
+                        mStatus = STATUS_RINGING;
+                    }
                     mFloatingView.show(number);
                     if (canReadContact()) {
                         mFloatingView.setPerson(ContactHelper.getInstance().getContactName(mContext, number), number);
                     }
                 } else {
                     mFloatingView.hide();
+                    if (TelephonyManager.EXTRA_STATE_OFFHOOK.equalsIgnoreCase(state) && mStatus == STATUS_RINGING) {
+                        mStatus = STATUS_NONE;
+                        showLockGuide();
+                    }
                 }
             }
         }
     };
 
 
-    SystemCallCore(Context context) {
-        super(context);
+    SystemCallCore(Context context, String pkg) {
+        super(context, pkg);
         init(context);
     }
 
@@ -80,6 +94,9 @@ public class SystemCallCore extends CallCore {
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.intent.action.PHONE_STATE");
         context.registerReceiver(mPhoneStateReceiver, filter);
+
+        mCallPkgs.add("com.google.android.dialer");
+        mCallPkgs.add("com.android.incallui");
     }
 
     @Override
@@ -129,6 +146,7 @@ public class SystemCallCore extends CallCore {
 
     @Override
     public void onNotificationPosted(Notification notification) {
+        Log.d(TAG, "onNotificationPosted: " + notification);
         if (mContext == null || notification == null) {
             return;
         }
@@ -141,15 +159,20 @@ public class SystemCallCore extends CallCore {
     }
 
     @Override
+    public void onNotificationRemoved(Notification notification) {
+        Log.d(TAG, "onNotificationRemoved: " + notification);
+    }
+
+    @Override
     public void onDestroy() {
-        if (mContext!=null) {
+        if (mContext != null) {
             mContext.unregisterReceiver(mPhoneStateReceiver);
         }
     }
 
     public boolean isCall(StatusBarNotification sbn) {
         return sbn != null && sbn.getNotification() != null &&
-                "com.google.android.dialer".equals(sbn.getPackageName())
+                mCallPkgs.contains(sbn.getPackageName())
                 && sbn.getNotification().actions != null;
     }
 
