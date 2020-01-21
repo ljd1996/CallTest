@@ -1,4 +1,4 @@
-package com.hearing.calltest.adapter;
+package com.hearing.calltest.main;
 
 import android.graphics.Color;
 import android.view.LayoutInflater;

@@ -11,7 +11,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
-import com.hearing.calltest.MainActivity;
+import com.hearing.calltest.main.MainActivity;
 import com.hearing.calltest.R;
 import com.hearing.calltest.call.CallCore;
 import com.hearing.calltest.call.SystemCallCore;

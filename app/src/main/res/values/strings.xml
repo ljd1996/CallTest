@@ -6,4 +6,13 @@
     <string name="cancel">取消</string>
     <string name="confirm">确认</string>
     <string name="unknown_contract">未知来电</string>
+    <string name="set_show">设为来电秀</string>
+    <string name="permission_tip">为了正常使用来电秀，请允许以下权限。</string>
+    <string name="sdcard_permission">读写权限</string>
+    <string name="phone_permission">电话权限</string>
+    <string name="float_permission">悬浮窗权限</string>
+    <string name="notification_permission">通知权限</string>
+    <string name="get_permission">获取权限</string>
+    <string name="apply_video_success">应用来电秀成功!</string>
+    <string name="apply_ringtone_success">应用来电秀铃声成功!</string>
 </resources>

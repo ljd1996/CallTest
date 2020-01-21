@@ -11,33 +11,21 @@ import android.os.Build;
  * @author liujiadong
  * @since 2020/1/16
  */
-public class PermissionHelper {
+public class PermissionUtil {
 
     private static final String sManufacturer = Build.MANUFACTURER.toLowerCase();
 
-
-    private PermissionHelper() {
-    }
-
-    private static class SingleTon {
-        private static PermissionHelper sInstance = new PermissionHelper();
-    }
-
-    public static PermissionHelper getInstance() {
-        return SingleTon.sInstance;
-    }
-
-    private boolean isIntentIllegal(Context paramContext, Intent paramIntent) {
+    private static boolean isIntentIllegal(Context paramContext, Intent paramIntent) {
         return paramContext.getPackageManager().queryIntentActivities(paramIntent, PackageManager.MATCH_DEFAULT_ONLY).size() > 0;
     }
 
-    private Intent getAll(Context paramContext) {
+    private static Intent getAll(Context paramContext) {
         Intent intent = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
         intent.setData(Uri.fromParts("package", paramContext.getPackageName(), null));
         return intent;
     }
 
-    private Intent getHuaWei(Context paramContext) {
+    private static Intent getHuaWei(Context paramContext) {
         Intent intent = new Intent();
         intent.setComponent(new ComponentName("com.huawei.systemmanager", "com.huawei.permissionmanager.ui.MainActivity"));
         if (isIntentIllegal(paramContext, intent))
@@ -49,7 +37,7 @@ public class PermissionHelper {
         return intent;
     }
 
-    private Intent getXiaoMi(Context paramContext) {
+    private static Intent getXiaoMi(Context paramContext) {
         Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
         intent.putExtra("extra_pkgname", paramContext.getPackageName());
         if (isIntentIllegal(paramContext, intent))
@@ -61,7 +49,7 @@ public class PermissionHelper {
         return intent;
     }
 
-    private Intent getOPPO(Context paramContext) {
+    private static Intent getOPPO(Context paramContext) {
         Intent intent = new Intent();
         intent.putExtra("packageName", paramContext.getPackageName());
         intent.setClassName("com.color.safecenter", "com.color.safecenter.permission.floatwindow.FloatWindowListActivity");
@@ -74,7 +62,7 @@ public class PermissionHelper {
         return intent;
     }
 
-    private Intent getIqoo(Context paramContext) {
+    private static Intent getIqoo(Context paramContext) {
         Intent intent = new Intent();
         intent.setClassName("com.iqoo.secure", "com.iqoo.secure.ui.phoneoptimize.FloatWindowManager");
         intent.putExtra("packagename", paramContext.getPackageName());
@@ -84,14 +72,14 @@ public class PermissionHelper {
         return intent;
     }
 
-    private Intent getMeiZu(Context paramContext) {
+    private static Intent getMeiZu(Context paramContext) {
         Intent intent = new Intent("com.meizu.safe.security.SHOW_APPSEC");
         intent.putExtra("packageName", paramContext.getPackageName());
         intent.setComponent(new ComponentName("com.meizu.safe", "com.meizu.safe.security.AppSecActivity"));
         return intent;
     }
 
-    public void jumpPermissionPage(Context context) {
+    public static void jumpPermissionPage(Context context) {
         if (context == null) {
             return;
         }
@@ -117,7 +105,7 @@ public class PermissionHelper {
         }
     }
 
-    public Intent getAutoStartSettingIntent(Context context) throws Exception {
+    public static Intent getAutoStartSettingIntent(Context context) throws Exception {
         ComponentName componentName = null;
         String brand = Build.MANUFACTURER;
         Intent intent = new Intent();

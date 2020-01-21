@@ -9,6 +9,9 @@ import android.util.Log;
 
 import com.hearing.calltest.provider.CallProvider;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author liujiadong
  * @since 2020/1/8
@@ -33,18 +36,31 @@ public class VideoDBHelper {
 
     public void setSelectVideo(Context context, String number, String path) {
         ContentValues values = new ContentValues();
-        values.put(CallProvider.NUMBER, number.replace(" ", ""));
+        values.put(CallProvider.NUMBER, handleNumber(number));
         values.put(CallProvider.PATH, path);
+        if (!TextUtils.isEmpty(queryVideo(context, number))) {
+            context.getContentResolver().delete(VIDEO_URI, CallProvider.NUMBER + "=\'" + number + "\'", null);
+        }
         context.getContentResolver().insert(VIDEO_URI, values);
     }
 
     public String getSelectVideo(Context context, String number) {
-        String path = queryVideo(context, number);
+        String path = queryVideo(context, handleNumber(number));
         if (TextUtils.isEmpty(path)) {
             path = queryVideo(context, UNKNOWN_NUMBER);
         }
         Log.d("LLL", "path = " + path);
         return path;
+    }
+
+    private String handleNumber(String number) {
+        if (TextUtils.isEmpty(number) || UNKNOWN_NUMBER.equals(number)) {
+            return number;
+        }
+        String regEx = "[^0-9]";
+        Pattern p = Pattern.compile(regEx);
+        Matcher m = p.matcher(number);
+        return m.replaceAll("").trim();
     }
 
     private String queryVideo(Context context, String number) {

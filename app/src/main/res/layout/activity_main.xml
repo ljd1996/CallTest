@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".main.MainActivity">
 
     <TextView
         android:layout_width="match_parent"
@@ -22,30 +22,6 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/video_rv"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="@color/colorPrimaryDark" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:text="@string/ring_select"
-        android:textColor="@color/colorAccent"
-        android:textStyle="bold" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/colorAccent" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/ring_rv"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />

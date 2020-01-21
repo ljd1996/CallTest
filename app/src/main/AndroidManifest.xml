@@ -34,7 +34,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
-            android:name=".MainActivity"
+            android:name=".main.MainActivity"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,6 +45,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".detail.DetailActivity" />
+        <activity android:name=".permission.PermissionActivity" />
+        <activity android:name=".detail.DetailApplyActivity" />
 
         <service
             android:name=".service.PhoneListenService"

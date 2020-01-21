@@ -52,7 +52,7 @@ public class CallProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        return mDatabase.delete(DataBaseHelper.USER_TABLE_NAME, selection, selectionArgs);
     }
 
     @Override
