@@ -15,39 +15,18 @@ import com.hearing.calltest.business.VideoDBHelper;
  */
 public class WhatsAppCallCore extends CallCore {
 
-    private static final int STATUS_NONE = 0;
-    private static final int STATUS_RINGING = 1;
-
-    private int mStatus = STATUS_NONE;
-
     WhatsAppCallCore(Context context, String pkg) {
         super(context, pkg);
     }
 
     @Override
     protected void acceptCall() {
-        if (mActions != null) {
-            try {
-                mActions[1].actionIntent.send();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                mActions = null;
-            }
-        }
+        sendAction(1);
     }
 
     @Override
     protected void endCall() {
-        if (mActions != null) {
-            try {
-                mActions[0].actionIntent.send();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                mActions = null;
-            }
-        }
+        sendAction(0);
     }
 
     @Override

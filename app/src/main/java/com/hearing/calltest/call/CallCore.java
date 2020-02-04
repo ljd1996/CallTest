@@ -19,6 +19,12 @@ public abstract class CallCore {
 
     public static final String SYSTEM_CALL_PKG = "system_call";
     public static final String WHATS_APP_CALL_PKG = "com.whatsapp";
+    public static final String WE_CHAT_CALL_PKG = "com.tencent.mm";
+
+    protected static final int STATUS_NONE = 0;
+    protected static final int STATUS_RINGING = 1;
+
+    protected int mStatus = STATUS_NONE;
 
     Context mContext;
     FloatingView mFloatingView;
@@ -88,6 +94,18 @@ public abstract class CallCore {
         return false;
     }
 
+    protected void sendAction(int position) {
+        if (mActions != null) {
+            try {
+                mActions[position].actionIntent.send();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                mActions = null;
+            }
+        }
+    }
+
     protected abstract void acceptCall();
 
     protected abstract void endCall();
@@ -108,6 +126,8 @@ public abstract class CallCore {
                     return new SystemCallCore(context, pkg);
                 case WHATS_APP_CALL_PKG:
                     return new WhatsAppCallCore(context, pkg);
+                case WE_CHAT_CALL_PKG:
+                    return new WeChatCallCore(context, pkg);
                 default:
                     return null;
             }

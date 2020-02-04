@@ -39,10 +39,6 @@ public class SystemCallCore extends CallCore {
 
     private static final List<String> mCallPkgs = new ArrayList<>();
 
-    private static final int STATUS_NONE = 0;
-    private static final int STATUS_RINGING = 1;
-
-    private int mStatus = STATUS_NONE;
     private TelecomManager mTelManager;
     private BroadcastReceiver mPhoneStateReceiver = new BroadcastReceiver() {
 
